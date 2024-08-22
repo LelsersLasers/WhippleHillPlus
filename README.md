@@ -27,11 +27,11 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ## Routes
 
-### API
+### Backend
 
-- POST /login - Login user
-- POST /register - Signup user
-- POST /logout - Logout user
+- POST /login_user - Login user
+- POST /register_user - Signup user
+- POST /logout_user - Logout user
 - GET /assignments - List of all assignments
 - POST /assignments - Add a new assignment
 - GET /assignments/:id - View a single assignment
@@ -42,7 +42,7 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 - PUT /classes/:id - Edit a single class
 - DELETE /classes/:id - Delete a single class
 
-### Web
+### Pages
 
 - GET /login - Login form
 - GET /register - Signup form
