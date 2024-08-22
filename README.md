@@ -39,6 +39,7 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 	- GET /get_assignment?id- View a single assignment (in popup)
 	- POST /update_assignment [id] - Edit a single assignment
 	- POST /delete_assignment [id] - Delete a single assignment
+	- POST /status_assignment [id] [status] - Change the status of an assignment
 - Class stuff
 	<!-- - GET /classes - List of all classes -->
 	- POST /create_class - Add a new class

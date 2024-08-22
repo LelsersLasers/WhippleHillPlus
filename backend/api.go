@@ -258,3 +258,45 @@ func deleteAssignment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to delete assignment", http.StatusInternalServerError)
 	}
 }
+
+func statusAssignment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	r.ParseForm()
+	id := r.FormValue("id")
+	status := r.FormValue("status")
+
+	mutex.Lock()
+	_, err := db.Exec("UPDATE assignments SET status = ? WHERE id = ?", status, id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to update assignment status", http.StatusInternalServerError)
+	}
+
+	assignment := Assignment{}
+
+	mutex.Lock()
+	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	if rows.Next() {
+		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
+	} else {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(assignment)
+}
+
+
+}
