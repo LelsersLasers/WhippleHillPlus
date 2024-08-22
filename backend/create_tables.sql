@@ -19,6 +19,7 @@ pragma foreign_keys = ON;
 -- 	- assigned_date (date)
 -- 	- class_id (int, fk)
 -- 	- status (text) ["Not Started", "In Progress", "Completed"]
+--  - type (text) ["Homework", "Quiz", "Test", "Project", "Paper", "Other"]
 
 CREATE TABLE IF NOT EXISTS users (
 	id            INTEGER PRIMARY KEY,
@@ -44,7 +45,8 @@ CREATE TABLE IF NOT EXISTS assignments (
 	due_date      DATE    NOT NULL,
 	due_time      TIME,
 	assigned_date DATE    NOT NULL,
-	status        TEXT    NOT NULL,
+	status        TEXT    CHECK (status IN ('Not Started', 'In Progress', 'Completed'))             DEFAULT 'Not Started',
+	type          TEXT    CHECK (type IN ('Homework', 'Quiz', 'Test', 'Project', 'Paper', 'Other')) DEFAULT 'Homework',
 
 	-- 1 class : many assignments
 	class_id INTEGER NOT NULL,

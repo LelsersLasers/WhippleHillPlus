@@ -24,3 +24,4 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 	- assigned_date (date)
 	- class_id (int, fk)
 	- status (text) ["Not Started", "In Progress", "Completed"]
+	- type (text) ["Homework", "Quiz", "Test", "Project", "Paper", "Other"]
