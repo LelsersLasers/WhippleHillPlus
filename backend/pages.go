@@ -28,7 +28,7 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 		"classes":     classes,
 		"assignments": assignments,
 	}
-	templ := template.Must(template.ParseFiles("templates/home.html"))
+	templ := template.Must(template.ParseFiles("templates/home.tmpl"))
 	templ.Execute(w, data)
 }
 
@@ -40,7 +40,7 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
 	}
 	failContext = cookiesToFailContext(failContext, &w, r)
 
-	templ := template.Must(template.ParseFiles("templates/login.html"))
+	templ := template.Must(template.ParseFiles("templates/login.tmpl"))
 	templ.Execute(w, failContext)
 }
 
@@ -54,6 +54,6 @@ func registerPage(w http.ResponseWriter, r *http.Request) {
 	}
 	failContext = cookiesToFailContext(failContext, &w, r)
 
-	templ := template.Must(template.ParseFiles("templates/register.html"))
+	templ := template.Must(template.ParseFiles("templates/register.tmpl"))
 	templ.Execute(w, failContext)
 }
