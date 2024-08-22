@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -114,4 +115,146 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	login(&w, r, email)
+}
+
+
+func createAssignment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+	
+	r.ParseForm()
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	dueDate := r.FormValue("due_date")
+	dueTime := r.FormValue("due_time")
+	assignedDate := r.FormValue("assigned_date")
+	status := r.FormValue("status")
+	assignmentType := r.FormValue("type")
+	classID := r.FormValue("class_id")
+
+	mutex.Lock()
+	res, err := db.Exec("INSERT INTO assignments (title, description, due_date, due_time, assigned_date, status, type, class_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", title, description, dueDate, dueTime, assignedDate, status, assignmentType, classID)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to insert assignment", http.StatusInternalServerError)
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		http.Error(w, "Internal server error - failed to insert assignment", http.StatusInternalServerError)
+	}
+	mutex.Unlock()
+
+	assignment := Assignment{}
+
+	mutex.Lock()
+	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	if rows.Next() {
+		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
+	} else {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(assignment)
+}
+
+func getAssignment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		return
+	}
+
+	id := r.URL.Query().Get("id")
+
+	assignment := Assignment{}
+
+	mutex.Lock()
+	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	if rows.Next() {
+		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
+	} else {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(assignment)
+}
+
+func updateAssignment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	r.ParseForm()
+	id := r.FormValue("id")
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	dueDate := r.FormValue("due_date")
+	dueTime := r.FormValue("due_time")
+	assignedDate := r.FormValue("assigned_date")
+	status := r.FormValue("status")
+	assignmentType := r.FormValue("type")
+	classID := r.FormValue("class_id")
+
+	mutex.Lock()
+	_, err := db.Exec("UPDATE assignments SET title = ?, description = ?, due_date = ?, due_time = ?, assigned_date = ?, status = ?, type = ?, class_id = ? WHERE id = ?", title, description, dueDate, dueTime, assignedDate, status, assignmentType, classID, id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to update assignment", http.StatusInternalServerError)
+	}
+
+	assignment := Assignment{}
+
+	mutex.Lock()
+	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	if rows.Next() {
+		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
+	} else {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(assignment)
+}
+
+func deleteAssignment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	r.ParseForm()
+	id := r.FormValue("id")
+
+	mutex.Lock()
+	_, err := db.Exec("DELETE FROM assignments WHERE id = ?", id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to delete assignment", http.StatusInternalServerError)
+	}
 }

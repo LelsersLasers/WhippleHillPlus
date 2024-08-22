@@ -35,15 +35,15 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 	- POST /logout_user - Logout user
 - Assignment stuff
 	<!-- - GET /assignments - List of all assignments -->
-	- POST /assignments - Add a new assignment
-	- GET /assignments/:id - View a single assignment (in popup)
-	- PUT /assignments/:id - Edit a single assignment
-	- DELETE /assignments/:id - Delete a single assignment
+	- POST /create_assignment - Add a new assignment
+	- GET /get_assignment?id- View a single assignment (in popup)
+	- POST /update_assignment [id] - Edit a single assignment
+	- POST /delete_assignment [id] - Delete a single assignment
 - Class stuff
 	<!-- - GET /classes - List of all classes -->
-	- POST /classes - Add a new class
-	- PUT /classes/:id - Edit a single class
-	- DELETE /classes/:id - Delete a single class
+	- POST /create_class - Add a new class
+	- POST /update_class [id] - Edit a single class
+	- POST /delete_class [id] - Delete a single class
 
 ### Pages
 

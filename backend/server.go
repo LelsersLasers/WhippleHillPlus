@@ -39,6 +39,12 @@ func main() {
 	handler.HandleFunc("/logout_user", logoutUser)
 	handler.HandleFunc("/register_user", registerUser)
 
+	handler.HandleFunc("/create_assignment", createAssignment)
+	handler.HandleFunc("/get_assignment", getAssignment)
+	handler.HandleFunc("/update_assignment", updateAssignment)
+	handler.HandleFunc("/delete_assignment", deleteAssignment)
+
+
 	loggedHandler := loggingMiddleware(handler)
 
 	fmt.Printf("Server is running on port %d\n", Port)
