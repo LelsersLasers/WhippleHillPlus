@@ -29,18 +29,21 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ### Backend
 
-- POST /login_user - Login user
-- POST /register_user - Signup user
-- POST /logout_user - Logout user
-- GET /assignments - List of all assignments
-- POST /assignments - Add a new assignment
-- GET /assignments/:id - View a single assignment
-- PUT /assignments/:id - Edit a single assignment
-- DELETE /assignments/:id - Delete a single assignment
-- GET /classes - List of all classes
-- POST /classes - Add a new class
-- PUT /classes/:id - Edit a single class
-- DELETE /classes/:id - Delete a single class
+- User stuff:
+	- POST /login_user - Login user
+	- POST /register_user - Signup user
+	- POST /logout_user - Logout user
+- Assignment stuff
+	<!-- - GET /assignments - List of all assignments -->
+	- POST /assignments - Add a new assignment
+	- GET /assignments/:id - View a single assignment (in popup)
+	- PUT /assignments/:id - Edit a single assignment
+	- DELETE /assignments/:id - Delete a single assignment
+- Class stuff
+	<!-- - GET /classes - List of all classes -->
+	- POST /classes - Add a new class
+	- PUT /classes/:id - Edit a single class
+	- DELETE /classes/:id - Delete a single class
 
 ### Pages
 
@@ -48,4 +51,3 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 - GET /register - Signup form
 - GET / - Home page
 	- Redirect to login if not logged in
-- GET /classes/:id - View assignments for a single class
