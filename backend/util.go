@@ -72,22 +72,39 @@ func cookiesToFailContext(failContext map[string]string, w *http.ResponseWriter,
 	return failContext
 }
 
-func allAssignments(user_id int) []Assignment {
+func allClassesAndAssignments(user_id int) ([]Class, []Assignment) {
+	classes := []Class{}
 	assignments := []Assignment{}
 
 	mutex.Lock()
-	rows, err := db.Query("SELECT * FROM assignments WHERE user_id = ?", user_id)
+	rows, err := db.Query("SELECT * FROM classes WHERE user_id = ?", user_id)
 	mutex.Unlock()
 
 	if err != nil {
-		return assignments
+		return classes, assignments
 	}
 
 	for rows.Next() {
-		assignment := Assignment{}
-		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
-		assignments = append(assignments, assignment)
+		class := Class{}
+		rows.Scan(&class.ID, &class.Name, &class.UserID)
+		classes = append(classes, class)
 	}
 
-	return assignments
+	for _, class := range classes {
+		mutex.Lock()
+		rows, err := db.Query("SELECT * FROM assignments WHERE class_id = ?", class.ID)
+		mutex.Unlock()
+
+		if err != nil {
+			return classes, assignments
+		}
+
+		for rows.Next() {
+			assignment := Assignment{}
+			rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
+			assignments = append(assignments, assignment)
+		}
+	}
+
+	return classes, assignments
 }

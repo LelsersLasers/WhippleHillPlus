@@ -22,9 +22,14 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	assignments := allAssignments(user.ID)
+	classes, assignments := allClassesAndAssignments(user.ID)
+	data := map[string]interface{}{
+		"user":        user,
+		"classes":     classes,
+		"assignments": assignments,
+	}
 	templ := template.Must(template.ParseFiles("templates/home.html"))
-	templ.Execute(w, assignments)
+	templ.Execute(w, data)
 }
 
 func loginPage(w http.ResponseWriter, r *http.Request) {

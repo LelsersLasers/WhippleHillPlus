@@ -7,6 +7,13 @@ type User struct {
 	PasswordHash string `json:"password_hash"`
 }
 
+type Class struct {
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	UserID int    `json:"user_id"`
+}
+
+
 type Assignment struct {
 	ID           int    `json:"id"`
 	Name         string `json:"title"`
