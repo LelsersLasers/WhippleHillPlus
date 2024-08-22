@@ -5,7 +5,6 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ## Database
 
-
 - users
 	- id (int, pk)
 	- email (text)
@@ -25,3 +24,23 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 	- class_id (int, fk)
 	- status (text) ["Not Started", "In Progress", "Completed"]
 	- type (text) ["Homework", "Quiz", "Test", "Project", "Paper", "Other"]
+
+## Routes
+
+- GET / - Home page
+	- Redirect to login if not logged in
+- GET /login - Login form
+- POST /login - Login user
+- GET /signup - Signup form
+- POST /signup - Signup user
+- POST /logout - Logout user
+- GET /assignments - List of all assignments
+- POST /assignments - Add a new assignment
+- GET /assignments/:id - View a single assignment
+- PUT /assignments/:id - Edit a single assignment
+- DELETE /assignments/:id - Delete a single assignment
+- GET /classes - List of all classes
+- POST /classes - Add a new class
+- GET /classes/:id - View assignments for a single class
+- PUT /classes/:id - Edit a single class
+- DELETE /classes/:id - Delete a single class
