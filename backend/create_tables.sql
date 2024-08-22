@@ -22,14 +22,14 @@ pragma foreign_keys = ON;
 --  - type (text) ["Homework", "Quiz", "Test", "Project", "Paper", "Other"]
 
 CREATE TABLE IF NOT EXISTS users (
-	id            INTEGER PRIMARY KEY,
+	id            INTEGER PRIMARY KEY AUTOINCREMENT,
 	email         TEXT    NOT NULL UNIQUE,
 	name          TEXT    NOT NULL,
 	password_hash TEXT    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS classes (
-	id      INTEGER PRIMARY KEY,
+	id      INTEGER PRIMARY KEY AUTOINCREMENT,
 	name    TEXT    NOT NULL,
 
 	-- 1 user : many classes
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS classes (
 );
 
 CREATE TABLE IF NOT EXISTS assignments (
-	id            INTEGER PRIMARY KEY,
+	id            INTEGER PRIMARY KEY AUTOINCREMENT,
 	name          TEXT    NOT NULL,
 	description   TEXT    NOT NULL,
 	due_date      DATE    NOT NULL,
