@@ -13,7 +13,6 @@ type Class struct {
 	UserID int    `json:"user_id"`
 }
 
-
 type Assignment struct {
 	ID           int    `json:"id"`
 	Name         string `json:"title"`

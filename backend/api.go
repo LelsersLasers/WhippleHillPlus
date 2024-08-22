@@ -117,12 +117,11 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	login(&w, r, email)
 }
 
-
 func createAssignment(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		return
 	}
-	
+
 	r.ParseForm()
 	title := r.FormValue("title")
 	description := r.FormValue("description")
@@ -297,7 +296,6 @@ func statusAssignment(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(assignment)
 }
-
 
 func createClass(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
