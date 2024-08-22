@@ -6,6 +6,7 @@ import (
 	"os"
 	"net/http"
 	"sync"
+	"time"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -49,6 +50,15 @@ func createTables(db *sql.DB) {
 
 
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		now := time.Now()
+		fmt.Printf("%s - %s %s %s\n", now.Format("2006-01-02 15:04:05"), r.RemoteAddr, r.Method, r.URL)
+		next.ServeHTTP(w, r)
+	})
+}
+
+
 
 
 
@@ -60,15 +70,18 @@ func main() {
 
 	
 
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	handler := http.NewServeMux()
+	handler.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello, World!")
 	})
+
+	loggedHandler := loggingMiddleware(handler)
+
 
 	fmt.Printf("Server is running on port %d\n", Port)
 
 	addr := fmt.Sprintf(":%d", Port)
-	err := http.ListenAndServe(addr, nil)
+	err := http.ListenAndServe(addr, loggedHandler)
 	if err != nil {
 		fmt.Println("Error starting server: ", err)
 	}
