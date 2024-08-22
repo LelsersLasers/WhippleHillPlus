@@ -24,7 +24,6 @@ var (
 	mutex sync.Mutex
 )
 
-
 func main() {
 	db = dbConn()
 	createTables(db)
