@@ -299,4 +299,102 @@ func statusAssignment(w http.ResponseWriter, r *http.Request) {
 }
 
 
+func createClass(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	r.ParseForm()
+	name := r.FormValue("name")
+	userID := r.FormValue("user_id")
+
+	mutex.Lock()
+	res, err := db.Exec("INSERT INTO classes (name, user_id) VALUES (?, ?)", name, userID)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to insert class", http.StatusInternalServerError)
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		http.Error(w, "Internal server error - failed to insert class", http.StatusInternalServerError)
+	}
+	mutex.Unlock()
+
+	class := Class{}
+
+	mutex.Lock()
+	rows, err := db.Query("SELECT * FROM classes WHERE id = ?", id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	if rows.Next() {
+		rows.Scan(&class.ID, &class.Name, &class.UserID)
+	} else {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(class)
+}
+
+func updateClass(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	r.ParseForm()
+	id := r.FormValue("id")
+	name := r.FormValue("name")
+	// userID := r.FormValue("user_id")
+
+	mutex.Lock()
+	_, err := db.Exec("UPDATE classes SET name = ? WHERE id = ?", name, id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to update class", http.StatusInternalServerError)
+	}
+
+	class := Class{}
+
+	mutex.Lock()
+	rows, err := db.Query("SELECT * FROM classes WHERE id = ?", id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	if rows.Next() {
+		rows.Scan(&class.ID, &class.Name, &class.UserID)
+	} else {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(class)
+}
+
+func deleteClass(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	r.ParseForm()
+	id := r.FormValue("id")
+
+	mutex.Lock()
+	_, err := db.Exec("DELETE FROM classes WHERE id = ?", id)
+	mutex.Unlock()
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to delete class", http.StatusInternalServerError)
+	}
 }

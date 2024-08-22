@@ -45,6 +45,9 @@ func main() {
 	handler.HandleFunc("/delete_assignment", deleteAssignment)
 	handler.HandleFunc("/status_assignment", statusAssignment)
 
+	handler.HandleFunc("/create_class", createClass)
+	handler.HandleFunc("/update_class", updateClass)
+	handler.HandleFunc("/delete_class", deleteClass)
 
 	loggedHandler := loggingMiddleware(handler)
 
