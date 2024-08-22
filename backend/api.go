@@ -22,14 +22,8 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 		"error_message": "",
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		http.Error(w, "Internal server error - failed to hash password", http.StatusInternalServerError)
-		return
-	}
-
 	mutex.Lock()
-	rows, err := db.Query("SELECT * FROM users WHERE email = ? AND password_hash = ?", email, passwordHash)
+	rows, err := db.Query("SELECT password_hash FROM users WHERE email = ?", email)
 	mutex.Unlock()
 
 	if err != nil {
@@ -38,12 +32,18 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if rows.Next() {
-		login(&w, r, email)
-	} else {
-		fail_context["error_message"] = "Invalid email or password"
-		failContextToCookies(&w, fail_context)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		println("rows.Next()")
+		passwordHash := ""
+		rows.Scan(&passwordHash)
+		if bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)) == nil {
+			login(&w, r, email)
+			return
+		}
 	}
+
+	fail_context["error_message"] = "Invalid email or password"
+	failContextToCookies(&w, fail_context)
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 func logoutUser(w http.ResponseWriter, r *http.Request) {
@@ -104,9 +104,10 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to hash password", http.StatusInternalServerError)
 		return
 	}
+	passwordHashStr := string(passwordHash)
 
 	mutex.Lock()
-	_, err = db.Exec("INSERT INTO users (email, name, password_hash) VALUES (?, ?, ?)", email, name, passwordHash)
+	_, err = db.Exec("INSERT INTO users (email, name, password_hash) VALUES (?, ?, ?)", email, name, passwordHashStr)
 	mutex.Unlock()
 
 	if err != nil {
