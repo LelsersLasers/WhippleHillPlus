@@ -27,12 +27,10 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ## Routes
 
-- GET / - Home page
-	- Redirect to login if not logged in
-- GET /login - Login form
+### API
+
 - POST /login - Login user
-- GET /signup - Signup form
-- POST /signup - Signup user
+- POST /register - Signup user
 - POST /logout - Logout user
 - GET /assignments - List of all assignments
 - POST /assignments - Add a new assignment
@@ -41,6 +39,13 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 - DELETE /assignments/:id - Delete a single assignment
 - GET /classes - List of all classes
 - POST /classes - Add a new class
-- GET /classes/:id - View assignments for a single class
 - PUT /classes/:id - Edit a single class
 - DELETE /classes/:id - Delete a single class
+
+### Web
+
+- GET /login - Login form
+- GET /register - Signup form
+- GET / - Home page
+	- Redirect to login if not logged in
+- GET /classes/:id - View assignments for a single class
