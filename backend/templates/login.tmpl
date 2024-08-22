@@ -1,0 +1,22 @@
+{{define "title"}}WH+ Login{{end}}
+
+{{define "content"}}
+	<form action="/login_user" method="post">
+		<div>
+			<label for="email">Email</label>
+			<input type="email" id="email" name="email" value="{{.email}}" required>
+		</div>
+		<div>
+			<label for="password">Password</label>
+			<input type="password" id="password" name="password" value="{{.password}}" required>
+		</div>
+
+		{{if ne .error_message ""}}
+			<p>{{.error_message}}</p>
+		{{end}}
+
+		<button type="submit">Login</button>
+	</form>
+
+	<p>Don't have an account? <a href="/register">Register</a></p>
+{{end}}

@@ -1,0 +1,30 @@
+{{define "title"}}WH+ Register{{end}}
+
+{{define "content"}}
+	<form action="/register_user" method="post">
+		<div>
+			<label for="email">Email</label>
+			<input type="email" id="email" name="email" value="{{.email}}" required>
+		</div>
+		<div>
+			<label for="name">Name</label>
+			<input type="text" id="name" name="name" value="{{.name}}" required>
+		</div>
+		<div>
+			<label for="password_1">Password</label>
+			<input type="password" id="password_1" name="password_1" value="{{.password_1}}" required>
+		</div>
+		<div>
+			<label for="password_2">Confirm Password</label>
+			<input type="password" id="password_2" name="password_2" value="{{.password_2}}" required>
+		</div>
+
+		{{if ne .error_message ""}}
+			<p>{{.error_message}}</p>
+		{{end}}
+
+		<button type="submit">Register</button>
+	</form>
+
+	<p>Already have an account? <a href="/login">Login</a></p>
+{{end}}
