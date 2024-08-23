@@ -19,6 +19,8 @@ const SessionTimeout = 24 * time.Hour
 const ContextFailCookieNameBase = "context_fail_"
 const ContextFailCookieTimeout = 5 * time.Second
 
+const SvelteDir = "./../frontend/public"
+
 var (
 	db    *sql.DB
 	mutex sync.Mutex
@@ -31,7 +33,13 @@ func main() {
 
 	handler := http.NewServeMux()
 
-	handler.HandleFunc("/", homePage)
+
+	fileServer := http.FileServer(http.Dir(SvelteDir))
+	handler.Handle("/", checkLogin(fileServer))
+	
+	
+	handler.HandleFunc("/home_data", homePage)
+
 	handler.HandleFunc("/login", loginPage)
 	handler.HandleFunc("/register", registerPage)
 
@@ -49,12 +57,13 @@ func main() {
 	handler.HandleFunc("/update_class", updateClass)
 	handler.HandleFunc("/delete_class", deleteClass)
 
-	loggedHandler := loggingMiddleware(handler)
+	middlewareHandler := loggingMiddleware(corsMiddleware(handler))
+
 
 	fmt.Printf("Server is running on port %d\n", Port)
 
 	addr := fmt.Sprintf(":%d", Port)
-	err := http.ListenAndServe(addr, loggedHandler)
+	err := http.ListenAndServe(addr, middlewareHandler)
 	if err != nil {
 		fmt.Println("Error starting server: ", err)
 	}

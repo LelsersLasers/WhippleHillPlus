@@ -2,10 +2,44 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+
+func homePage(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(SessionIdCookieName)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	fmt.Println(cookie.Value)
+
+	sessionID := cookie.Value
+
+	user, err := userFromEmail(sessionID)
+
+	if err != nil {
+		logout(&w, r)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	classes, assignments := allClassesAndAssignments(user.ID)
+	data := map[string]interface{}{
+		"user":        user,
+		"classes":     classes,
+		"assignments": assignments,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
 
 func loginUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -32,7 +66,6 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if rows.Next() {
-		println("rows.Next()")
 		passwordHash := ""
 		rows.Scan(&passwordHash)
 		if bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)) == nil {

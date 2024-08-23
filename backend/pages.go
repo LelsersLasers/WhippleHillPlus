@@ -5,37 +5,6 @@ import (
 	"net/http"
 )
 
-func homePage(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(SessionIdCookieName)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	sessionID := cookie.Value
-
-	user, err := userFromEmail(sessionID)
-
-	if err != nil {
-		logout(&w, r)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	classes, assignments := allClassesAndAssignments(user.ID)
-	data := map[string]interface{}{
-		"user":        user,
-		"classes":     classes,
-		"assignments": assignments,
-	}
-	templ, err := template.ParseFiles("templates/base.tmpl", "templates/home.tmpl")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	templ.Execute(w, data)
-}
-
 func loginPage(w http.ResponseWriter, r *http.Request) {
 	failContext := map[string]string{
 		"email":         "",
