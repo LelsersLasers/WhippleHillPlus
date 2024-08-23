@@ -25,6 +25,20 @@ func userFromEmail(email string) (User, error) {
 	return user, fmt.Errorf("User not found")
 }
 
+func isLoggedIn(r *http.Request) (bool, string) {
+	cookie, err := r.Cookie(SessionIdCookieName)
+	if err != nil {
+		return false, ""
+	}
+
+	mutex.Lock()
+	rows, err := db.Query("SELECT * FROM users WHERE email = ?", cookie.Value)
+	mutex.Unlock()
+
+	return err == nil && rows.Next(), cookie.Value
+}
+
+
 func login(w *http.ResponseWriter, r *http.Request, email string) {
 	// Already verified that login info is correct
 	sessionID := email

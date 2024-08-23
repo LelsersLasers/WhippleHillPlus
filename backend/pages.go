@@ -6,6 +6,12 @@ import (
 )
 
 func loginPage(w http.ResponseWriter, r *http.Request) {
+	loggedIn, _ := isLoggedIn(r)
+	if loggedIn {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	failContext := map[string]string{
 		"email":         "",
 		"password":      "",
@@ -22,6 +28,12 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func registerPage(w http.ResponseWriter, r *http.Request) {
+	loggedIn, _ := isLoggedIn(r)
+	if loggedIn {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	failContext := map[string]string{
 		"email":         "",
 		"name":          "",

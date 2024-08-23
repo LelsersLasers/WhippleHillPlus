@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -10,16 +9,12 @@ import (
 
 
 func homePage(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(SessionIdCookieName)
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	loggedIn, sessionID := isLoggedIn(r)
+
+	if loggedIn {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-
-	fmt.Println(cookie.Value)
-
-	sessionID := cookie.Value
 
 	user, err := userFromEmail(sessionID)
 
@@ -42,6 +37,12 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 
 
 func loginUser(w http.ResponseWriter, r *http.Request) {
+	loggedIn, _ := isLoggedIn(r)
+	if loggedIn {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	if r.Method != "POST" {
 		return
 	}
@@ -84,6 +85,12 @@ func logoutUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {
+	loggedIn, _ := isLoggedIn(r)
+	if loggedIn {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+	
 	if r.Method != "POST" {
 		return
 	}

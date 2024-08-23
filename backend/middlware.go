@@ -25,9 +25,8 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 func checkLogin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := r.Cookie(SessionIdCookieName)
-		if err != nil {
-			fmt.Println(err)
+		loggedIn, _ := isLoggedIn(r)
+		if !loggedIn {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
