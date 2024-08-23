@@ -15,7 +15,7 @@ type Class struct {
 
 type Assignment struct {
 	ID           int    `json:"id"`
-	Name         string `json:"title"`
+	Name         string `json:"name"`
 	Description  string `json:"description"`
 	DueDate      string `json:"due_date"`
 	DueTime      string `json:"due_time"`

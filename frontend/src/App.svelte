@@ -51,6 +51,7 @@
 		})
 			.then((res) => {
 				classes = classes.filter((c) => c.id !== id);
+				assignments = assignments.filter((a) => a.class_id !== id);
 			})
 	}
 	function updateClassButton(id) {
@@ -96,11 +97,56 @@
 				updateClassModalId = "";
 				showUpdateClassModal = false;
 			})
+	}
+
+	function deleteAssignmentButton(id) {
+		const data = {
+			'id': id,
 		}
+		fetch(`${api}/delete_assignment`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) => {
+				assignments = assignments.filter((a) => a.id !== id);
+			})
+	}
+	function createAssignment(e) {
+		const data = formDataWithoutReload(e);
+
+		fetch(`${api}/create_assignment`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				assignments = [...assignments, data];
+				document.getElementById("createAssignmentModalName").value = "";
+				document.getElementById("createAssignmentModalDescription").value = "";
+				document.getElementById("createAssignmentModalAssignedDate").value = "";
+				document.getElementById("createAssignmentModalDueDate").value = "";
+				document.getElementById("createAssignmentModalDueTime").value = "";
+				document.getElementById("createAssignmentModalStatus").value = "Not Started";
+				document.getElementById("createAssignmentModalType").value = "Homework";
+				document.getElementById("createAssignmentModalClassId").value = "";
+				showCreateAssignmentModal = false;
+			})
+	};
+
+
 
 	addEventListener("DOMContentLoaded", () => {
 		document.getElementById("createClass").addEventListener("submit", createClass);
 		document.getElementById("updateClass").addEventListener("submit", updateClass);
+
+		document.getElementById("createAssignmentModalAssignedDate").valueAsDate = new Date();
+		document.getElementById("createAssignment").addEventListener("submit", createAssignment);
 	});
 </script>
 
@@ -146,6 +192,8 @@
 		<th>Assigned</th>
 		<th>Due</th>
 		<th>Status</th>
+		<th>Edit</th>
+		<th>Delete</th>
 	</tr>
 	{#each assignments as a (a.id)}
 		<tr>
@@ -156,6 +204,10 @@
 			<td>{a.assigned_date}</td>
 			<td>{a.due_date} - {a.due_time}</td>
 			<td>{a.status}</td>
+			<td>TODO</td>
+			<td>
+				<button type="button" on:click={() => deleteAssignmentButton(a.id)}>Delete</button>
+			</td>
 		</tr>
 	{/each}
 </table>
@@ -185,3 +237,55 @@
 	</form>
 </Modal>
 
+
+<button type="button" on:click={() => showCreateAssignmentModal = true}>Create Assignment</button>
+<Modal bind:showModal={showCreateAssignmentModal}>
+	<h2>Create Assignment</h2>
+	<form id="createAssignment">
+		<label for="name">Name:</label>
+		<input type="text" id="createAssignmentModalName" name="name" required>
+		<br />
+		
+		<label for="description">Description:</label>
+		<textarea id="createAssignmentModalDescription" name="description"></textarea>
+		
+		<label for="assigned_date">Assigned Date:</label>
+		<input type="date" id="createAssignmentModalAssignedDate" name="assigned_date" required>
+		<br />
+
+		<label for="due_date">Due Date:</label>
+		<input type="date" id="createAssignmentModalDueDate" name="due_date" required>
+		<br />
+
+		<label for="due_time">Due Time:</label>
+		<input type="time" id="createAssignmentModalDueTime" name="due_time">
+		<br />
+		
+		<label for="status">Status:</label>
+		<select id="createAssignmentModalStatus" name="status">
+			<option value="Not Started" selected="selected">Not Started</option>
+			<option value="In Progress">In Progress</option>
+			<option value="Completed">Completed</option>
+		</select>
+		<br />
+
+		<label for="type">Type:</label>
+		<select id="createAssignmentModalType" name="type">
+			<option value="Homework" selected="selected">Homework</option>
+			<option value="Quiz">Quiz</option>
+			<option value="Test">Test</option>
+			<option value="Project">Project</option>
+			<option value="Paper">Paper</option>
+			<option value="Other">Other</option>
+		</select>
+		<br />
+
+		<label for="class_id">Class:</label>
+		<select id="createAssignmentModalClassId" name="class_id">
+			{#each classes as c (c.id)}
+				<option value={c.id}>{c.name}</option>
+			{/each}
+		</select>
+		<button type="submit">Create</button>
+	</form>
+</Modal>

@@ -155,7 +155,7 @@ func createAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data struct {
-		Title          string `json:"title"`
+		Name          string `json:"name"`
 		Description    string `json:"description"`
 		DueDate        string `json:"due_date"`
 		DueTime        string `json:"due_time"`
@@ -174,7 +174,7 @@ func createAssignment(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	res, err := db.Exec("INSERT INTO assignments (title, description, due_date, due_time, assigned_date, status, type, class_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", data.Title, data.Description, data.DueDate, data.DueTime, data.AssignedDate, data.Status, data.AssignmentType, data.ClassID)
+	res, err := db.Exec("INSERT INTO assignments (name, description, due_date, due_time, assigned_date, status, type, class_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", data.Name, data.Description, data.DueDate, data.DueTime, data.AssignedDate, data.Status, data.AssignmentType, data.ClassID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert assignment", http.StatusInternalServerError)
 		return
@@ -243,7 +243,7 @@ func updateAssignment(w http.ResponseWriter, r *http.Request) {
 
 	var data struct {
 		ID            string `json:"id"`
-		Title          string `json:"title"`
+		Name          string `json:"name"`
 		Description    string `json:"description"`
 		DueDate        string `json:"due_date"`
 		DueTime        string `json:"due_time"`
@@ -262,7 +262,7 @@ func updateAssignment(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	_, err = db.Exec("UPDATE assignments SET title = ?, description = ?, due_date = ?, due_time = ?, assigned_date = ?, status = ?, type = ?, class_id = ? WHERE id = ?", data.Title, data.Description, data.DueDate, data.DueTime, data.AssignedDate, data.Status, data.AssignmentType, data.ClassID, data.ID)
+	_, err = db.Exec("UPDATE assignments SET name = ?, description = ?, due_date = ?, due_time = ?, assigned_date = ?, status = ?, type = ?, class_id = ? WHERE id = ?", data.Name, data.Description, data.DueDate, data.DueTime, data.AssignedDate, data.Status, data.AssignmentType, data.ClassID, data.ID)
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to update assignment", http.StatusInternalServerError)
@@ -294,13 +294,20 @@ func deleteAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	id := r.FormValue("id")
+	var data struct {
+		ID int `json:"id"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	_, err := db.Exec("DELETE FROM assignments WHERE id = ?", id)
+	_, err = db.Exec("DELETE FROM assignments WHERE id = ?", data.ID)
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to delete assignment", http.StatusInternalServerError)

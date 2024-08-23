@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS classes (
 CREATE TABLE IF NOT EXISTS assignments (
 	id            INTEGER PRIMARY KEY AUTOINCREMENT,
 	name          TEXT    NOT NULL,
-	description   TEXT    NOT NULL,
+	description   TEXT,
 	due_date      DATE    NOT NULL,
 	due_time      TIME,
 	assigned_date DATE    NOT NULL,
