@@ -164,6 +164,27 @@
 				showCreateAssignmentModal = false;
 			})
 	};
+	function statusAssignment(e, id) {
+		const data = {
+			'id': id,
+			'status': e.target.value,
+		}
+
+		fetch(`${api}/status_assignment`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				assignments = assignments.map((a) => {
+					if (a.id === data.id) return data;
+					else                  return a;
+				});
+			})
+	}
 	function updateAssignment(e) {
 		const data = formDataWithoutReload(e);
 
@@ -257,7 +278,16 @@
 			<td>{a.name}</td>
 			<td>{a.assigned_date}</td>
 			<td>{a.due_date} - {a.due_time}</td>
-			<td>{a.status}</td>
+			<!-- <td>{a.status}</td> -->
+
+			<td>
+				<select value={a.status} on:input={(e) => statusAssignment(e, a.id)}>
+					<option value="Not Started">Not Started</option>
+					<option value="In Progress">In Progress</option>
+					<option value="Completed">Completed</option>
+				</select>
+			</td>
+
 			<td>
 				<button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
 			</td>

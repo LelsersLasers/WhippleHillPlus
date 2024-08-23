@@ -320,14 +320,21 @@ func statusAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	id := r.FormValue("id")
-	status := r.FormValue("status")
+	var data struct {
+		ID     int    `json:"id"`
+		Status string `json:"status"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	_, err := db.Exec("UPDATE assignments SET status = ? WHERE id = ?", status, id)
+	_, err = db.Exec("UPDATE assignments SET status = ? WHERE id = ?", data.Status, data.ID)
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to update assignment status", http.StatusInternalServerError)
@@ -336,7 +343,7 @@ func statusAssignment(w http.ResponseWriter, r *http.Request) {
 
 	assignment := Assignment{}
 
-	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
+	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", data.ID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
