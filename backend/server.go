@@ -33,11 +33,9 @@ func main() {
 
 	handler := http.NewServeMux()
 
-
 	fileServer := http.FileServer(http.Dir(SvelteDir))
 	handler.Handle("/", checkLogin(fileServer))
-	
-	
+
 	handler.HandleFunc("/home_data", homePage)
 
 	handler.HandleFunc("/login", loginPage)
@@ -58,7 +56,6 @@ func main() {
 	handler.HandleFunc("/delete_class", deleteClass)
 
 	middlewareHandler := loggingMiddleware(corsMiddleware(handler))
-
 
 	fmt.Printf("Server is running on port %d\n", Port)
 

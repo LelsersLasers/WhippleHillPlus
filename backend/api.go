@@ -2,12 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
-
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	_, sessionID := isLoggedIn(r)
@@ -29,7 +27,6 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 }
-
 
 func loginUser(w http.ResponseWriter, r *http.Request) {
 	loggedIn, _ := isLoggedIn(r)
@@ -86,7 +83,7 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	
+
 	if r.Method != "POST" {
 		return
 	}
@@ -157,20 +154,27 @@ func createAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	title := r.FormValue("title")
-	description := r.FormValue("description")
-	dueDate := r.FormValue("due_date")
-	dueTime := r.FormValue("due_time")
-	assignedDate := r.FormValue("assigned_date")
-	status := r.FormValue("status")
-	assignmentType := r.FormValue("type")
-	classID := r.FormValue("class_id")
+	var data struct {
+		Title          string `json:"title"`
+		Description    string `json:"description"`
+		DueDate        string `json:"due_date"`
+		DueTime        string `json:"due_time"`
+		AssignedDate   string `json:"assigned_date"`
+		Status         string `json:"status"`
+		AssignmentType string `json:"type"`
+		ClassID        string `json:"class_id"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	res, err := db.Exec("INSERT INTO assignments (title, description, due_date, due_time, assigned_date, status, type, class_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", title, description, dueDate, dueTime, assignedDate, status, assignmentType, classID)
+	res, err := db.Exec("INSERT INTO assignments (title, description, due_date, due_time, assigned_date, status, type, class_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", data.Title, data.Description, data.DueDate, data.DueTime, data.AssignedDate, data.Status, data.AssignmentType, data.ClassID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert assignment", http.StatusInternalServerError)
 		return
@@ -247,6 +251,10 @@ func updateAssignment(w http.ResponseWriter, r *http.Request) {
 	status := r.FormValue("status")
 	assignmentType := r.FormValue("type")
 	classID := r.FormValue("class_id")
+
+	// var data struct {
+
+	// }
 
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -352,21 +360,14 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("AAA", data.Name, data.UserID)
-
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	fmt.Println("BBB")
 	res, err := db.Exec("INSERT INTO classes (name, user_id) VALUES (?, ?)", data.Name, data.UserID)
-	fmt.Println("CCC")
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Internal server error - failed to insert class", http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Println("EEE")
 
 	id, err := res.LastInsertId()
 	if err != nil {

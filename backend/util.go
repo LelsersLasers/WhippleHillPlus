@@ -11,7 +11,7 @@ func userFromEmail(email string) (User, error) {
 
 	mutex.Lock()
 	defer mutex.Unlock()
-	
+
 	rows, err := db.Query("SELECT * FROM users WHERE email = ?", email)
 	if err != nil {
 		return user, err
@@ -43,7 +43,6 @@ func isLoggedIn(r *http.Request) (bool, string) {
 
 	return rows.Next(), cookie.Value
 }
-
 
 func login(w *http.ResponseWriter, r *http.Request, email string) {
 	// Already verified that login info is correct
