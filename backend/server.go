@@ -46,7 +46,6 @@ func main() {
 	handler.HandleFunc("/register_user", registerUser)
 
 	handler.HandleFunc("/create_assignment", createAssignment)
-	handler.HandleFunc("/get_assignment", getAssignment)
 	handler.HandleFunc("/update_assignment", updateAssignment)
 	handler.HandleFunc("/delete_assignment", deleteAssignment)
 	handler.HandleFunc("/status_assignment", statusAssignment)

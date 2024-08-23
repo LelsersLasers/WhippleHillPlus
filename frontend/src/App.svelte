@@ -35,6 +35,16 @@
 	let updateAssignmentModalClassId = "";
 	let updateAssignmentModalId = "";
 
+	let showAssignmentDetailsModal = false;
+	let assignmentDetailsModalName = "";
+	let assignmentDetailsModalDescription = "";
+	let assignmentDetailsModalAssignedDate = "";
+	let assignmentDetailsModalDueDate = "";
+	let assignmentDetailsModalDueTime = "";
+	let assignmentDetailsModalStatus = "";
+	let assignmentDetailsModalType = "";
+	let assignmentDetailsModalClassId = "";
+
 
 	function formDataWithoutReload(e) {
 		e.preventDefault();
@@ -139,6 +149,18 @@
 		updateAssignmentModalClassId = a.class_id;
 		updateAssignmentModalId = a.id;
 		showUpdateAssignmentModal = true;
+	}
+	function assignmentDetailsButton(id) {
+		const a = assignments.find((a) => a.id === id);
+		assignmentDetailsModalName = a.name;
+		assignmentDetailsModalDescription = a.description;
+		assignmentDetailsModalAssignedDate = a.assigned_date;
+		assignmentDetailsModalDueDate = a.due_date;
+		assignmentDetailsModalDueTime = a.due_time;
+		assignmentDetailsModalStatus = a.status;
+		assignmentDetailsModalType = a.type;
+		assignmentDetailsModalClassId = a.class_id;
+		showAssignmentDetailsModal = true;
 	}
 	function createAssignment(e) {
 		const data = formDataWithoutReload(e);
@@ -275,10 +297,11 @@
 			<td>{a.id}</td>
 			<td>{classFromId(a.class_id).name}</td>
 			<td>{a.type}</td>
-			<td>{a.name}</td>
+			<td>
+				<button type="button" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</button>
+			</td>
 			<td>{a.assigned_date}</td>
 			<td>{a.due_date} - {a.due_time}</td>
-			<!-- <td>{a.status}</td> -->
 
 			<td>
 				<select value={a.status} on:input={(e) => statusAssignment(e, a.id)}>
@@ -427,4 +450,15 @@
 
 		<button type="submit">Update</button>
 	</form>
+</Modal>
+
+<Modal bind:showModal={showAssignmentDetailsModal}>
+	<h2>Assignment Details</h2>
+	<p>Name: {assignmentDetailsModalName}</p>
+	<p>Description: {assignmentDetailsModalDescription}</p>
+	<p>Assigned Date: {assignmentDetailsModalAssignedDate}</p>
+	<p>Due Date: {assignmentDetailsModalDueDate} - {assignmentDetailsModalDueTime}</p>
+	<p>Status: {assignmentDetailsModalStatus}</p>
+	<p>Type: {assignmentDetailsModalType}</p>
+	<p>Class: {classFromId(assignmentDetailsModalClassId)?.name}</p>
 </Modal>

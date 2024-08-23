@@ -206,36 +206,6 @@ func createAssignment(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(assignment)
 }
 
-func getAssignment(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		return
-	}
-
-	id := r.URL.Query().Get("id")
-
-	assignment := Assignment{}
-
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
-	if err != nil {
-		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
-	} else {
-		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(assignment)
-}
-
 func updateAssignment(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		return
