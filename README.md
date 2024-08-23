@@ -4,7 +4,6 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ## Todo
 
-- Line breaks in descriptions
 - Sorting
 - Delete dialogs
 - Classes and assignments in different "tabs"

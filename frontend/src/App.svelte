@@ -141,6 +141,7 @@
 		const a = assignments.find((a) => a.id === id);
 		updateAssignmentModalName = a.name;
 		updateAssignmentModalDescription = a.description;
+		console.log(a.description);
 		updateAssignmentModalAssignedDate = a.assigned_date.slice(0, "yyyy-MM-dd".length);
 		updateAssignmentModalDueDate = a.due_date.slice(0, "yyyy-MM-dd".length);
 		updateAssignmentModalDueTime = a.due_time;
@@ -249,6 +250,9 @@
 
 
 <style>
+.description {
+	white-space: pre-line;
+}
 </style>
 
 
@@ -455,7 +459,7 @@
 <Modal bind:showModal={showAssignmentDetailsModal}>
 	<h2>Assignment Details</h2>
 	<p>Name: {assignmentDetailsModalName}</p>
-	<p>Description: {assignmentDetailsModalDescription}</p>
+	<p class="description">Description: <br/>{assignmentDetailsModalDescription}</p>
 	<p>Assigned Date: {assignmentDetailsModalAssignedDate}</p>
 	<p>Due Date: {assignmentDetailsModalDueDate} - {assignmentDetailsModalDueTime}</p>
 	<p>Status: {assignmentDetailsModalStatus}</p>
