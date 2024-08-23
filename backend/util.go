@@ -10,12 +10,13 @@ func userFromEmail(email string) (User, error) {
 	user := User{}
 
 	mutex.Lock()
+	defer mutex.Unlock()
+	
 	rows, err := db.Query("SELECT * FROM users WHERE email = ?", email)
-	mutex.Unlock()
-
 	if err != nil {
 		return user, err
 	}
+	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&user.ID, &user.Email, &user.Name, &user.PasswordHash)
@@ -32,10 +33,15 @@ func isLoggedIn(r *http.Request) (bool, string) {
 	}
 
 	mutex.Lock()
-	rows, err := db.Query("SELECT * FROM users WHERE email = ?", cookie.Value)
-	mutex.Unlock()
+	defer mutex.Unlock()
 
-	return err == nil && rows.Next(), cookie.Value
+	rows, err := db.Query("SELECT * FROM users WHERE email = ?", cookie.Value)
+	if err != nil {
+		return false, cookie.Value
+	}
+	defer rows.Close()
+
+	return rows.Next(), cookie.Value
 }
 
 
@@ -91,12 +97,13 @@ func allClassesAndAssignments(user_id int) ([]Class, []Assignment) {
 	assignments := []Assignment{}
 
 	mutex.Lock()
-	rows, err := db.Query("SELECT * FROM classes WHERE user_id = ?", user_id)
-	mutex.Unlock()
+	defer mutex.Unlock()
 
+	rows, err := db.Query("SELECT * FROM classes WHERE user_id = ?", user_id)
 	if err != nil {
 		return classes, assignments
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		class := Class{}
@@ -105,13 +112,11 @@ func allClassesAndAssignments(user_id int) ([]Class, []Assignment) {
 	}
 
 	for _, class := range classes {
-		mutex.Lock()
 		rows, err := db.Query("SELECT * FROM assignments WHERE class_id = ?", class.ID)
-		mutex.Unlock()
-
 		if err != nil {
 			return classes, assignments
 		}
+		defer rows.Close()
 
 		for rows.Next() {
 			assignment := Assignment{}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -9,13 +10,7 @@ import (
 
 
 func homePage(w http.ResponseWriter, r *http.Request) {
-	loggedIn, sessionID := isLoggedIn(r)
-
-	if loggedIn {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
+	_, sessionID := isLoggedIn(r)
 	user, err := userFromEmail(sessionID)
 
 	if err != nil {
@@ -58,13 +53,14 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mutex.Lock()
-	rows, err := db.Query("SELECT password_hash FROM users WHERE email = ?", email)
-	mutex.Unlock()
+	defer mutex.Unlock()
 
+	rows, err := db.Query("SELECT password_hash FROM users WHERE email = ?", email)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	defer rows.Close()
 
 	if rows.Next() {
 		passwordHash := ""
@@ -124,13 +120,14 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mutex.Lock()
-	rows, err := db.Query("SELECT * FROM users WHERE email = ?", email)
-	mutex.Unlock()
+	defer mutex.Unlock()
 
+	rows, err := db.Query("SELECT * FROM users WHERE email = ?", email)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	defer rows.Close()
 
 	if rows.Next() {
 		failContext["error_message"] = "Email already in use"
@@ -146,10 +143,7 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	passwordHashStr := string(passwordHash)
 
-	mutex.Lock()
 	_, err = db.Exec("INSERT INTO users (email, name, password_hash) VALUES (?, ?, ?)", email, name, passwordHashStr)
-	mutex.Unlock()
-
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert user", http.StatusInternalServerError)
 		return
@@ -174,27 +168,28 @@ func createAssignment(w http.ResponseWriter, r *http.Request) {
 	classID := r.FormValue("class_id")
 
 	mutex.Lock()
+	defer mutex.Unlock()
+
 	res, err := db.Exec("INSERT INTO assignments (title, description, due_date, due_time, assigned_date, status, type, class_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", title, description, dueDate, dueTime, assignedDate, status, assignmentType, classID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert assignment", http.StatusInternalServerError)
+		return
 	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert assignment", http.StatusInternalServerError)
+		return
 	}
-	mutex.Unlock()
 
 	assignment := Assignment{}
 
-	mutex.Lock()
 	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
-	mutex.Unlock()
-
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
@@ -217,13 +212,14 @@ func getAssignment(w http.ResponseWriter, r *http.Request) {
 	assignment := Assignment{}
 
 	mutex.Lock()
-	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
-	mutex.Unlock()
+	defer mutex.Unlock()
 
+	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
@@ -253,23 +249,23 @@ func updateAssignment(w http.ResponseWriter, r *http.Request) {
 	classID := r.FormValue("class_id")
 
 	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, err := db.Exec("UPDATE assignments SET title = ?, description = ?, due_date = ?, due_time = ?, assigned_date = ?, status = ?, type = ?, class_id = ? WHERE id = ?", title, description, dueDate, dueTime, assignedDate, status, assignmentType, classID, id)
-	mutex.Unlock()
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to update assignment", http.StatusInternalServerError)
+		return
 	}
 
 	assignment := Assignment{}
 
-	mutex.Lock()
 	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
-	mutex.Unlock()
-
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
@@ -291,11 +287,13 @@ func deleteAssignment(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 
 	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, err := db.Exec("DELETE FROM assignments WHERE id = ?", id)
-	mutex.Unlock()
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to delete assignment", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -309,23 +307,23 @@ func statusAssignment(w http.ResponseWriter, r *http.Request) {
 	status := r.FormValue("status")
 
 	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, err := db.Exec("UPDATE assignments SET status = ? WHERE id = ?", status, id)
-	mutex.Unlock()
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to update assignment status", http.StatusInternalServerError)
+		return
 	}
 
 	assignment := Assignment{}
 
-	mutex.Lock()
 	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
-	mutex.Unlock()
-
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&assignment.ID, &assignment.Name, &assignment.Description, &assignment.DueDate, &assignment.DueTime, &assignment.AssignedDate, &assignment.Status, &assignment.Type, &assignment.ClassID)
@@ -343,32 +341,47 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	name := r.FormValue("name")
-	userID := r.FormValue("user_id")
+	var data struct {
+		Name   string `json:"name"`
+		UserID string `json:"user_id"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("AAA", data.Name, data.UserID)
 
 	mutex.Lock()
-	res, err := db.Exec("INSERT INTO classes (name, user_id) VALUES (?, ?)", name, userID)
+	defer mutex.Unlock()
+
+	fmt.Println("BBB")
+	res, err := db.Exec("INSERT INTO classes (name, user_id) VALUES (?, ?)", data.Name, data.UserID)
+	fmt.Println("CCC")
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Internal server error - failed to insert class", http.StatusInternalServerError)
+		return
 	}
+
+	fmt.Println("EEE")
 
 	id, err := res.LastInsertId()
 	if err != nil {
-		http.Error(w, "Internal server error - failed to insert class", http.StatusInternalServerError)
+		http.Error(w, "Internal server error - failed to get last id", http.StatusInternalServerError)
+		return
 	}
-	mutex.Unlock()
 
 	class := Class{}
 
-	mutex.Lock()
 	rows, err := db.Query("SELECT * FROM classes WHERE id = ?", id)
-	mutex.Unlock()
-
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&class.ID, &class.Name, &class.UserID)
@@ -392,23 +405,23 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	// userID := r.FormValue("user_id")
 
 	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, err := db.Exec("UPDATE classes SET name = ? WHERE id = ?", name, id)
-	mutex.Unlock()
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to update class", http.StatusInternalServerError)
+		return
 	}
 
 	class := Class{}
 
-	mutex.Lock()
 	rows, err := db.Query("SELECT * FROM classes WHERE id = ?", id)
-	mutex.Unlock()
-
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&class.ID, &class.Name, &class.UserID)
@@ -430,10 +443,12 @@ func deleteClass(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 
 	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, err := db.Exec("DELETE FROM classes WHERE id = ?", id)
-	mutex.Unlock()
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to delete class", http.StatusInternalServerError)
+		return
 	}
 }
