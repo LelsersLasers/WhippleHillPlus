@@ -10,7 +10,6 @@
 	data
 		.then((res) => res.json())
 		.then((data) => {
-			console.log(data);
 			assignments = data["assignments"];
 			classes = data["classes"];
 			user = data["user"];
@@ -23,13 +22,23 @@
 	let updateClassModalName = "";
 	let updateClassModalId = "";
 
+	let showCreateAssignmentModal = false;
+
+	function formDataWithoutReload(e) {
+		e.preventDefault();
+
+		const form = e.target;
+		const formData = new FormData(form);
+		const data = Object.fromEntries(formData);
+		
+		return data;
+	}
 
 	function classFromId(id) {
 		return classes.find((c) => c.id === id);
 	}
 
-
-	function deleteClass(id) {
+	function deleteClassButton(id) {
 		const data = {
 			'id': id,
 		}
@@ -41,72 +50,57 @@
 			body: JSON.stringify(data),
 		})
 			.then((res) => {
-				console.log(res);
 				classes = classes.filter((c) => c.id !== id);
 			})
 	}
-
-	function updateClass(id) {
+	function updateClassButton(id) {
 		const c = classes.find((c) => c.id === id);
 		updateClassModalName = c.name;
 		updateClassModalId = c.id;
 		showUpdateClassModal = true;
 	}
+	function createClass(e) {
+		const data = formDataWithoutReload(e);
+		
+		fetch(`${api}/create_class`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) =>res.json())
+			.then((data) => {
+				classes = [...classes, data];
+				document.getElementById("createClassModalName").value = "";
+				showCreateClassModal = false;
+			})
+	}
+	function updateClass(e) {
+		const data = formDataWithoutReload(e);
+
+		fetch(`${api}/update_class`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				classes = classes.map((c) => {
+					if (c.id === data.id) return data;
+					else                  return c;
+				});
+				updateClassModalName = "";
+				updateClassModalId = "";
+				showUpdateClassModal = false;
+			})
+		}
 
 	addEventListener("DOMContentLoaded", () => {
-		document.getElementById("createClass").addEventListener("submit", (e) => {
-			e.preventDefault();
-			const form = e.target;
-			const formData = new FormData(form);
-			const data = Object.fromEntries(formData);
-			console.log(data);
-			fetch(`${api}/create_class`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(data),
-			})
-				.then((res) => {
-					console.log(res);
-					return res.json();
-				})
-				.then((data) => {
-					console.log(data);
-					classes = [...classes, data];
-					document.getElementById("createClassModalName").value = "";
-					showCreateClassModal = false;
-				})
-		});
-
-		document.getElementById("updateClass").addEventListener("submit", (e) => {
-			e.preventDefault();
-			const form = e.target;
-			const formData = new FormData(form);
-			const data = Object.fromEntries(formData);
-			console.log(data);
-			fetch(`${api}/update_class`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(data),
-			})
-				.then((res) => {
-					console.log(res);
-					return res.json();
-				})
-				.then((data) => {
-					console.log(data);
-					classes = classes.map((c) => {
-						if (c.id === data.id) return data;
-						else                  return c;
-					});
-					updateClassModalName = "";
-					updateClassModalId = "";
-					showUpdateClassModal = false;
-				})
-		});
+		document.getElementById("createClass").addEventListener("submit", createClass);
+		document.getElementById("updateClass").addEventListener("submit", updateClass);
 	});
 </script>
 
@@ -133,10 +127,10 @@
 			<td>{c.id}</td>
 			<td>{c.name}</td>
 			<td>
-				<button type="button" on:click={() => updateClass(c.id)}>Edit</button>
+				<button type="button" on:click={() => updateClassButton(c.id)}>Edit</button>
 			</td>
 			<td>
-				<button type="button" on:click={() => deleteClass(c.id)}>Delete</button>
+				<button type="button" on:click={() => deleteClassButton(c.id)}>Delete</button>
 			</td>
 		</tr>
 	{/each}
