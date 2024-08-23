@@ -24,6 +24,18 @@
 
 	let showCreateAssignmentModal = false;
 
+	let showUpdateAssignmentModal = false;
+	let updateAssignmentModalName = "";
+	let updateAssignmentModalDescription = "";
+	let updateAssignmentModalAssignedDate = "";
+	let updateAssignmentModalDueDate = "";
+	let updateAssignmentModalDueTime = "";
+	let updateAssignmentModalStatus = "";
+	let updateAssignmentModalType = "";
+	let updateAssignmentModalClassId = "";
+	let updateAssignmentModalId = "";
+
+
 	function formDataWithoutReload(e) {
 		e.preventDefault();
 
@@ -93,6 +105,7 @@
 					if (c.id === data.id) return data;
 					else                  return c;
 				});
+				assignments = assignments;
 				updateClassModalName = "";
 				updateClassModalId = "";
 				showUpdateClassModal = false;
@@ -113,6 +126,19 @@
 			.then((res) => {
 				assignments = assignments.filter((a) => a.id !== id);
 			})
+	}
+	function updateAssignmentButton(id) {
+		const a = assignments.find((a) => a.id === id);
+		updateAssignmentModalName = a.name;
+		updateAssignmentModalDescription = a.description;
+		updateAssignmentModalAssignedDate = a.assigned_date.slice(0, "yyyy-MM-dd".length);
+		updateAssignmentModalDueDate = a.due_date.slice(0, "yyyy-MM-dd".length);
+		updateAssignmentModalDueTime = a.due_time;
+		updateAssignmentModalStatus = a.status;
+		updateAssignmentModalType = a.type;
+		updateAssignmentModalClassId = a.class_id;
+		updateAssignmentModalId = a.id;
+		showUpdateAssignmentModal = true;
 	}
 	function createAssignment(e) {
 		const data = formDataWithoutReload(e);
@@ -138,6 +164,33 @@
 				showCreateAssignmentModal = false;
 			})
 	};
+	function updateAssignment(e) {
+		const data = formDataWithoutReload(e);
+
+		fetch(`${api}/update_assignment`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				assignments = assignments.map((a) => {
+					if (a.id === data.id) return data;
+					else                  return a;
+				});
+				updateAssignmentModalName = "";
+				updateAssignmentModalDescription = "";
+				updateAssignmentModalAssignedDate = "";
+				updateAssignmentModalDueDate = "";
+				updateAssignmentModalDueTime = "";
+				updateAssignmentModalStatus = "";
+				updateAssignmentModalType = "";
+				updateAssignmentModalClassId = "";
+				showUpdateAssignmentModal = false;
+			})
+	}
 
 
 
@@ -147,6 +200,7 @@
 
 		document.getElementById("createAssignmentModalAssignedDate").valueAsDate = new Date();
 		document.getElementById("createAssignment").addEventListener("submit", createAssignment);
+		document.getElementById("updateAssignment").addEventListener("submit", updateAssignment);
 	});
 </script>
 
@@ -204,7 +258,9 @@
 			<td>{a.assigned_date}</td>
 			<td>{a.due_date} - {a.due_time}</td>
 			<td>{a.status}</td>
-			<td>TODO</td>
+			<td>
+				<button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
+			</td>
 			<td>
 				<button type="button" on:click={() => deleteAssignmentButton(a.id)}>Delete</button>
 			</td>
@@ -225,8 +281,6 @@
 	</form>
 </Modal>
 
-
-
 <Modal bind:showModal={showUpdateClassModal}>
 	<h2>Update Class</h2>
 	<form id="updateClass">
@@ -236,6 +290,7 @@
 		<button type="submit">Update</button>
 	</form>
 </Modal>
+
 
 
 <button type="button" on:click={() => showCreateAssignmentModal = true}>Create Assignment</button>
@@ -287,5 +342,59 @@
 			{/each}
 		</select>
 		<button type="submit">Create</button>
+	</form>
+</Modal>
+
+<Modal bind:showModal={showUpdateAssignmentModal}>
+	<h2>Update Assignment</h2>
+	<form id="updateAssignment">
+		<label for="name">Name:</label>
+		<input type="text" id="updateAssignmentModalName" name="name" bind:value={updateAssignmentModalName} required>
+		<br />
+		
+		<label for="description">Description:</label>
+		<textarea id="updateAssignmentModalDescription" name="description" bind:value={updateAssignmentModalDescription}></textarea>
+		
+		<label for="assigned_date">Assigned Date:</label>
+		<input type="date" id="updateAssignmentModalAssignedDate" name="assigned_date" bind:value={updateAssignmentModalAssignedDate} required>
+		<br />
+
+		<label for="due_date">Due Date:</label>
+		<input type="date" id="updateAssignmentModalDueDate" name="due_date" bind:value={updateAssignmentModalDueDate} required>
+		<br />
+
+		<label for="due_time">Due Time:</label>
+		<input type="time" id="updateAssignmentModalDueTime" name="due_time" bind:value={updateAssignmentModalDueTime}>
+		<br />
+		
+		<label for="status">Status:</label>
+		<select id="updateAssignmentModalStatus" name="status" bind:value={updateAssignmentModalStatus}>
+			<option value="Not Started" selected="selected">Not Started</option>
+			<option value="In Progress">In Progress</option>
+			<option value="Completed">Completed</option>
+		</select>
+		<br />
+
+		<label for="type">Type:</label>
+		<select id="updateAssignmentModalType" name="type" bind:value={updateAssignmentModalType}>
+			<option value="Homework" selected="selected">Homework</option>
+			<option value="Quiz">Quiz</option>
+			<option value="Test">Test</option>
+			<option value="Project">Project</option>
+			<option value="Paper">Paper</option>
+			<option value="Other">Other</option>
+		</select>
+		<br />
+
+		<label for="class_id">Class:</label>
+		<select id="updateAssignmentModalClassId" name="class_id" bind:value={updateAssignmentModalClassId}>
+			{#each classes as c (c.id)}
+				<option value={c.id}>{c.name}</option>
+			{/each}
+		</select>
+
+		<input type="hidden" name="id" value={updateAssignmentModalId}>
+
+		<button type="submit">Update</button>
 	</form>
 </Modal>
