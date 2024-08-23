@@ -1,4 +1,6 @@
 <script>
+	import Modal from "./Modal.svelte";
+
 	export let data;
 	export let api;
 
@@ -13,6 +15,14 @@
 			classes = data["classes"];
 			user = data["user"];
 		});
+
+	
+	let showCreateClassModal = false;
+
+	let showUpdateClassModal = false;
+	let updateClassModalName = "";
+	let updateClassModalId = "";
+
 
 	function classFromId(id) {
 		return classes.find((c) => c.id === id);
@@ -36,6 +46,13 @@
 			})
 	}
 
+	function updateClass(id) {
+		const c = classes.find((c) => c.id === id);
+		updateClassModalName = c.name;
+		updateClassModalId = c.id;
+		showUpdateClassModal = true;
+	}
+
 	addEventListener("DOMContentLoaded", () => {
 		document.getElementById("createClass").addEventListener("submit", (e) => {
 			e.preventDefault();
@@ -57,9 +74,38 @@
 				.then((data) => {
 					console.log(data);
 					classes = [...classes, data];
-					document.getElementById("name").value = "";
+					document.getElementById("createClassModalName").value = "";
+					showCreateClassModal = false;
 				})
-				// .catch((err) => console.error(err));
+		});
+
+		document.getElementById("updateClass").addEventListener("submit", (e) => {
+			e.preventDefault();
+			const form = e.target;
+			const formData = new FormData(form);
+			const data = Object.fromEntries(formData);
+			console.log(data);
+			fetch(`${api}/update_class`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			})
+				.then((res) => {
+					console.log(res);
+					return res.json();
+				})
+				.then((data) => {
+					console.log(data);
+					classes = classes.map((c) => {
+						if (c.id === data.id) return data;
+						else                  return c;
+					});
+					updateClassModalName = "";
+					updateClassModalId = "";
+					showUpdateClassModal = false;
+				})
 		});
 	});
 </script>
@@ -86,7 +132,9 @@
 		<tr>
 			<td>{c.id}</td>
 			<td>{c.name}</td>
-			<td>TODO</td>
+			<td>
+				<button type="button" on:click={() => updateClass(c.id)}>Edit</button>
+			</td>
 			<td>
 				<button type="button" on:click={() => deleteClass(c.id)}>Delete</button>
 			</td>
@@ -119,11 +167,27 @@
 </table>
 
 
-<h2>Create Class</h2>
-<form id="createClass">
-	<label for="name">Name:</label>
-	<input type="text" id="name" name="name" required>
-	<input type="hidden" name="user_id" value={user.id}>
-	<button type="submit">Create</button>
-</form>
+
+<button type="button" on:click={() => showCreateClassModal = true}>Create Class</button>
+<Modal bind:showModal={showCreateClassModal}>
+	<h2>Create Class</h2>
+	<form id="createClass">
+		<label for="name">Name:</label>
+		<input type="text" id="createClassModalName" name="name" required>
+		<input type="hidden" name="user_id" value={user.id}>
+		<button type="submit">Create</button>
+	</form>
+</Modal>
+
+
+
+<Modal bind:showModal={showUpdateClassModal}>
+	<h2>Update Class</h2>
+	<form id="updateClass">
+		<label for="name">Name:</label>
+		<input type="text" id="updateClassModalName" name="name" bind:value={updateClassModalName} required>
+		<input type="hidden" name="id" bind:value={updateClassModalId}>
+		<button type="submit">Update</button>
+	</form>
+</Modal>
 

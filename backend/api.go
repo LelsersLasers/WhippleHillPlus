@@ -403,16 +403,21 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	id := r.FormValue("id")
-	name := r.FormValue("name")
-	// userID := r.FormValue("user_id")
+	var data struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	_, err := db.Exec("UPDATE classes SET name = ? WHERE id = ?", name, id)
-
+	_, err = db.Exec("UPDATE classes SET name = ? WHERE id = ?", data.Name, data.ID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to update class", http.StatusInternalServerError)
 		return
@@ -420,7 +425,7 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 
 	class := Class{}
 
-	rows, err := db.Query("SELECT * FROM classes WHERE id = ?", id)
+	rows, err := db.Query("SELECT * FROM classes WHERE id = ?", data.ID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
