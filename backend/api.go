@@ -241,25 +241,28 @@ func updateAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	id := r.FormValue("id")
-	title := r.FormValue("title")
-	description := r.FormValue("description")
-	dueDate := r.FormValue("due_date")
-	dueTime := r.FormValue("due_time")
-	assignedDate := r.FormValue("assigned_date")
-	status := r.FormValue("status")
-	assignmentType := r.FormValue("type")
-	classID := r.FormValue("class_id")
+	var data struct {
+		ID            string `json:"id"`
+		Title          string `json:"title"`
+		Description    string `json:"description"`
+		DueDate        string `json:"due_date"`
+		DueTime        string `json:"due_time"`
+		AssignedDate   string `json:"assigned_date"`
+		Status         string `json:"status"`
+		AssignmentType string `json:"type"`
+		ClassID        string `json:"class_id"`
+	}
 
-	// var data struct {
-
-	// }
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	_, err := db.Exec("UPDATE assignments SET title = ?, description = ?, due_date = ?, due_time = ?, assigned_date = ?, status = ?, type = ?, class_id = ? WHERE id = ?", title, description, dueDate, dueTime, assignedDate, status, assignmentType, classID, id)
+	_, err = db.Exec("UPDATE assignments SET title = ?, description = ?, due_date = ?, due_time = ?, assigned_date = ?, status = ?, type = ?, class_id = ? WHERE id = ?", data.Title, data.Description, data.DueDate, data.DueTime, data.AssignedDate, data.Status, data.AssignmentType, data.ClassID, data.ID)
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to update assignment", http.StatusInternalServerError)
@@ -268,7 +271,7 @@ func updateAssignment(w http.ResponseWriter, r *http.Request) {
 
 	assignment := Assignment{}
 
-	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", id)
+	rows, err := db.Query("SELECT * FROM assignments WHERE id = ?", data.ID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
@@ -440,13 +443,20 @@ func deleteClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	id := r.FormValue("id")
+	var data struct {
+		ID int `json:"id"`
+	}
+	
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	_, err := db.Exec("DELETE FROM classes WHERE id = ?", id)
+	_, err = db.Exec("DELETE FROM classes WHERE id = ?", data.ID)
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to delete class", http.StatusInternalServerError)

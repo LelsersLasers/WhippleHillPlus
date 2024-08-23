@@ -18,6 +18,24 @@
 		return classes.find((c) => c.id === id);
 	}
 
+
+	function deleteClass(id) {
+		const data = {
+			'id': id,
+		}
+		fetch(`${api}/delete_class`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) => {
+				console.log(res);
+				classes = classes.filter((c) => c.id !== id);
+			})
+	}
+
 	addEventListener("DOMContentLoaded", () => {
 		document.getElementById("createClass").addEventListener("submit", (e) => {
 			e.preventDefault();
@@ -31,7 +49,6 @@
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify(data),
-				// body: formData,
 			})
 				.then((res) => {
 					console.log(res);
@@ -40,6 +57,7 @@
 				.then((data) => {
 					console.log(data);
 					classes = [...classes, data];
+					document.getElementById("name").value = "";
 				})
 				// .catch((err) => console.error(err));
 		});
@@ -61,11 +79,17 @@
 	<tr>
 		<th>ID</th>
 		<th>Name</th>
+		<th>Edit</th>
+		<th>Delete</th>
 	</tr>
-	{#each classes as c}
+	{#each classes as c (c.id)}
 		<tr>
 			<td>{c.id}</td>
 			<td>{c.name}</td>
+			<td>TODO</td>
+			<td>
+				<button type="button" on:click={() => deleteClass(c.id)}>Delete</button>
+			</td>
 		</tr>
 	{/each}
 </table>
@@ -81,7 +105,7 @@
 		<th>Due</th>
 		<th>Status</th>
 	</tr>
-	{#each assignments as a}
+	{#each assignments as a (a.id)}
 		<tr>
 			<td>{a.id}</td>
 			<td>{classFromId(a.class_id).name}</td>
