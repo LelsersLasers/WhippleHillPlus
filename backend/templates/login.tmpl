@@ -3,11 +3,11 @@
 {{define "content"}}
 	<form action="/login_user" method="post">
 		<div>
-			<label for="email">Email</label>
-			<input type="email" id="email" name="email" value="{{.email}}" required>
+			<label for="username">Username:</label>
+			<input type="text" id="username" name="username" value="{{.username}}" required>
 		</div>
 		<div>
-			<label for="password">Password</label>
+			<label for="password">Password:</label>
 			<input type="password" id="password" name="password" value="{{.password}}" required>
 		</div>
 

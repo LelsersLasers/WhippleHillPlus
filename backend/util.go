@@ -6,20 +6,20 @@ import (
 	"time"
 )
 
-func userFromEmail(email string) (User, error) {
+func userFromUsername(username string) (User, error) {
 	user := User{}
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	rows, err := db.Query("SELECT * FROM users WHERE email = ?", email)
+	rows, err := db.Query("SELECT * FROM users WHERE username = ?", username)
 	if err != nil {
 		return user, err
 	}
 	defer rows.Close()
 
 	if rows.Next() {
-		rows.Scan(&user.ID, &user.Email, &user.Name, &user.PasswordHash)
+		rows.Scan(&user.ID, &user.Username, &user.Name, &user.PasswordHash)
 		return user, nil
 	}
 
@@ -35,7 +35,7 @@ func isLoggedIn(r *http.Request) (bool, string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	rows, err := db.Query("SELECT * FROM users WHERE email = ?", cookie.Value)
+	rows, err := db.Query("SELECT * FROM users WHERE username = ?", cookie.Value)
 	if err != nil {
 		return false, cookie.Value
 	}
@@ -44,9 +44,9 @@ func isLoggedIn(r *http.Request) (bool, string) {
 	return rows.Next(), cookie.Value
 }
 
-func login(w *http.ResponseWriter, r *http.Request, email string) {
+func login(w *http.ResponseWriter, r *http.Request, username string) {
 	// Already verified that login info is correct
-	sessionID := email
+	sessionID := username
 	http.SetCookie(*w, &http.Cookie{
 		Name:    SessionIdCookieName,
 		Value:   sessionID,

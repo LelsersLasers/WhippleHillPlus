@@ -3,7 +3,7 @@ pragma foreign_keys = ON;
 
 -- - users
 -- 	- id (int, pk)
--- 	- email (text)
+-- 	- username (text)
 -- 	- name (text)
 -- 	- password_hash (text)
 -- - classes
@@ -23,7 +23,7 @@ pragma foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS users (
 	id            INTEGER PRIMARY KEY AUTOINCREMENT,
-	email         TEXT    NOT NULL UNIQUE,
+	username      TEXT    NOT NULL UNIQUE,
 	name          TEXT    NOT NULL,
 	password_hash TEXT    NOT NULL
 );

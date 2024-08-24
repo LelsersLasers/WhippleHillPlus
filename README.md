@@ -4,14 +4,13 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ## Todo
 
-- email -> username
 - Actually CSS
 
 ## Database
 
 - users
 	- id (int, pk)
-	- email (text)
+	- username (text)
 	- display_name (text)
 	- password_hash (text)
 - classes

@@ -13,7 +13,7 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	failContext := map[string]string{
-		"email":         "",
+		"username":      "",
 		"password":      "",
 		"error_message": "",
 	}
@@ -35,7 +35,7 @@ func registerPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	failContext := map[string]string{
-		"email":         "",
+		"username":      "",
 		"name":          "",
 		"password_1":    "",
 		"password_2":    "",

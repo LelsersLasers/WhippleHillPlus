@@ -9,7 +9,7 @@ import (
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	_, sessionID := isLoggedIn(r)
-	user, err := userFromEmail(sessionID)
+	user, err := userFromUsername(sessionID)
 
 	if err != nil {
 		logout(&w, r)
@@ -40,11 +40,11 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.ParseForm()
-	email := r.FormValue("email")
+	username := r.FormValue("username")
 	password := r.FormValue("password")
 
 	fail_context := map[string]string{
-		"email":         email,
+		"username":      username,
 		"password":      password,
 		"error_message": "",
 	}
@@ -52,7 +52,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	rows, err := db.Query("SELECT password_hash FROM users WHERE email = ?", email)
+	rows, err := db.Query("SELECT password_hash FROM users WHERE username = ?", username)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
@@ -63,12 +63,12 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 		passwordHash := ""
 		rows.Scan(&passwordHash)
 		if bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)) == nil {
-			login(&w, r, email)
+			login(&w, r, username)
 			return
 		}
 	}
 
-	fail_context["error_message"] = "Invalid email or password"
+	fail_context["error_message"] = "Invalid username or password"
 	failContextToCookies(&w, fail_context)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
@@ -89,20 +89,20 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.ParseForm()
-	email := r.FormValue("email")
+	username := r.FormValue("username")
 	name := r.FormValue("name")
 	password_1 := r.FormValue("password_1")
 	password_2 := r.FormValue("password_2")
 
 	failContext := map[string]string{
-		"email":         email,
+		"username":      username,
 		"name":          name,
 		"password_1":    password_1,
 		"password_2":    password_2,
 		"error_message": "",
 	}
 
-	if email == "" || name == "" || password_1 == "" || password_2 == "" {
+	if username == "" || name == "" || password_1 == "" || password_2 == "" {
 		failContext["error_message"] = "All fields are required"
 		failContextToCookies(&w, failContext)
 		http.Redirect(w, r, "/register", http.StatusSeeOther)
@@ -119,7 +119,7 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	rows, err := db.Query("SELECT * FROM users WHERE email = ?", email)
+	rows, err := db.Query("SELECT * FROM users WHERE username = ?", username)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
@@ -127,7 +127,7 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	if rows.Next() {
-		failContext["error_message"] = "Email already in use"
+		failContext["error_message"] = "Username already in use"
 		failContextToCookies(&w, failContext)
 		http.Redirect(w, r, "/register", http.StatusSeeOther)
 		return
@@ -140,13 +140,13 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	passwordHashStr := string(passwordHash)
 
-	_, err = db.Exec("INSERT INTO users (email, name, password_hash) VALUES (?, ?, ?)", email, name, passwordHashStr)
+	_, err = db.Exec("INSERT INTO users (username, name, password_hash) VALUES (?, ?, ?)", username, name, passwordHashStr)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert user", http.StatusInternalServerError)
 		return
 	}
 
-	login(&w, r, email)
+	login(&w, r, username)
 }
 
 func createAssignment(w http.ResponseWriter, r *http.Request) {
