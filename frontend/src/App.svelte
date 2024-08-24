@@ -65,30 +65,6 @@
 		assignments = assignments.sort(sortAssignments);
 	}
 
-	let shown_assignments = [];
-
-	let today = new Date();
-
-	const pastSunday = new Date(today);
-	pastSunday.setDate(today.getDate() - today.getDay());
-	
-	const nextSunday = new Date(today);
-	if (7 - today.getDay() < 2) nextSunday.setDate(today.getDate() + (14 - today.getDay()));
-	else                        nextSunday.setDate(today.getDate() + (7  - today.getDay()));
-	
-	let dateStart = formatDateObj(pastSunday);
-	let dateEnd = formatDateObj(nextSunday);
-
-	$: {
-		shown_assignments = assignments.filter((a) => {
-			const due_date = new Date(a.due_date);
-			const assigned_date = new Date(a.assigned_date);
-			const due_date_in_range = due_date >= new Date(dateStart) && due_date <= new Date(dateEnd);
-			const assigned_date_in_range = assigned_date >= new Date(dateStart) && assigned_date <= new Date(dateEnd);
-			return due_date_in_range || assigned_date_in_range;
-		});
-	}
-
 	
 	let showCreateClassModal = false;
 
@@ -125,6 +101,58 @@
 	let assignmentDetailsModalStatus = "";
 	let assignmentDetailsModalType = "";
 	let assignmentDetailsModalClassId = "";
+
+	let showDateFilterModal = false;
+	let dateFilterType = "future";
+
+	const today = new Date();
+
+	const pastSunday = new Date(today);
+	pastSunday.setDate(today.getDate() - today.getDay());
+	
+	const nextSunday = new Date(today);
+	if (7 - today.getDay() < 2) nextSunday.setDate(today.getDate() + (14 - today.getDay()));
+	else                        nextSunday.setDate(today.getDate() + (7  - today.getDay()));
+	
+	let dateWeekStart = formatDateObj(pastSunday);
+	let dateWeekEnd = formatDateObj(nextSunday);
+
+	let dateStart = formatDateObj(pastSunday);
+	let dateEnd = formatDateObj(nextSunday);
+
+	function isMissing(a) {
+		// due date is in the past and status is not completed
+		const due_date = new Date(a.due_date);
+		return due_date < today && a.status != "Completed";
+	}
+
+	let shownAssignments = [];
+	$: {
+		if (dateFilterType == "all") {
+			shownAssignments = assignments;
+		} else if (dateFilterType == "week") {
+			shownAssignments = assignments.filter((a) => {
+				const due_date = new Date(a.due_date);
+				const assigned_date = new Date(a.assigned_date);
+				const due_date_in_range = due_date >= new Date(dateWeekStart) && due_date <= new Date(dateWeekEnd);
+				const assigned_date_in_range = assigned_date >= new Date(dateWeekStart) && assigned_date <= new Date(dateWeekEnd);
+				return due_date_in_range || assigned_date_in_range || isMissing(a);
+			});
+		} else if (dateFilterType == "future") {
+			shownAssignments = assignments.filter((a) => {
+				const due_date = new Date(a.due_date);
+				return due_date > today || isMissing(a);
+			});
+		} else if (dateFilterType == "range") {
+			shownAssignments = assignments.filter((a) => {
+				const due_date = new Date(a.due_date);
+				const assigned_date = new Date(a.assigned_date);
+				const due_date_in_range = due_date >= new Date(dateStart) && due_date <= new Date(dateEnd);
+				const assigned_date_in_range = assigned_date >= new Date(dateStart) && assigned_date <= new Date(dateEnd);
+				return due_date_in_range || assigned_date_in_range || isMissing(a);
+			});
+		}
+	}
 
 
 	function formatDateObj(date) {
@@ -409,13 +437,10 @@
 	{/each}
 </table>
 
+
 <h2>Your Assignments</h2>
 
-<label for="dateStart">Date range start:</label>
-<input type="date" id="dateStart" bind:value={dateStart}>
-
-<label for="dateEnd">Date range end:</label>
-<input type="date" id="dateEnd" bind:value={dateEnd}>
+<button type="button" on:click={() => showDateFilterModal = true}>Date Filter</button>
 
 <table>
 	<tr>
@@ -428,7 +453,7 @@
 		<th>Status</th>
 		<th>Edit</th>
 	</tr>
-	{#each shown_assignments as a (a.id)}
+	{#each shownAssignments as a (a.id)}
 		<tr>
 			<td>{a.id}</td>
 			<td>{classFromId(a.class_id).name}</td>
@@ -613,4 +638,36 @@
 	<p>Status: {assignmentDetailsModalStatus}</p>
 	<p>Type: {assignmentDetailsModalType}</p>
 	<p>Class: {classFromId(assignmentDetailsModalClassId)?.name}</p>
+</Modal>
+
+
+<Modal bind:showModal={showDateFilterModal}>
+	<h2>Date Filter</h2>
+
+	<label for="all">
+		<input type="radio" id="all" value="all" bind:group={dateFilterType}>
+		All
+	</label>
+
+	<label for="week">
+		<input type="radio" id="week" value="week" bind:group={dateFilterType}>
+		This Week
+	</label>
+
+	<label for="future">
+		<input type="radio" id="future" value="future" bind:group={dateFilterType}>
+		Future
+	</label>
+
+	<label for="range">
+		<input type="radio" id="range" value="range" bind:group={dateFilterType}>
+		Custom Range
+	</label>
+
+	{#if dateFilterType == "range"}
+		<label for="dateStart">Start Date:</label>
+		<input type="date" id="dateStart" bind:value={dateStart}>
+		<label for="dateEnd">End Date:</label>
+		<input type="date" id="dateEnd" bind:value={dateEnd}>
+	{/if}
 </Modal>
