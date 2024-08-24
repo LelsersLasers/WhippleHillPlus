@@ -433,6 +433,7 @@
 
 
 <h1>Welcome, {user.name}!</h1>
+<button type="button" on:click={() => window.location.href = "/logout_user"}>Logout</button>
 
 
 <h2>Your Classes</h2>
