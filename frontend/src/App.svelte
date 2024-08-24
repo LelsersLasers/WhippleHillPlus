@@ -426,14 +426,59 @@
 
 
 <style>
+
+#holder {
+	width: 80%;
+	margin: 0 auto;
+}
+
 .description {
 	white-space: pre-line;
 }
+
+table {
+	/* width: 80%;
+	margin: 0 auto; */
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th {
+	background-color: #afafaf;
+	text-align: left;
+	padding-left: 0;
+	border-bottom: 2px black solid;
+}
+
+tr:nth-child(even) {
+	background-color: #f4f4f4;
+}
+
+.breakWord {
+	word-break: break-word;
+}
+
+
+.zeroWidth {
+	width: 0;
+}
+.classWidth {
+	width: 15vw;
+}
+
+.untightPadding {
+	padding-right: 15px;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
 </style>
 
 
 
-
+<div id="holder">
 <h1>Welcome, {user.name}!</h1>
 <button type="button" on:click={() => window.location.href = "/logout_user"}>Logout</button>
 
@@ -445,19 +490,17 @@
 
 	<table>
 		<tr>
-			<th>ID</th>
 			<th>Name</th>
-			<th>Edit</th>
-			<th>Delete</th>
+			<th class="zeroWidth"></th>
+			<th class="zeroWidth"></th>
 		</tr>
 		{#each classes as c (c.id)}
 			<tr>
-				<td>{c.id}</td>
-				<td>{c.name}</td>
-				<td>
+				<td class="breakWord">{c.name}</td>
+				<td class="zeroWidth">
 					<button type="button" on:click={() => updateClassButton(c.id)}>Edit</button>
 				</td>
-				<td>
+				<td class="zeroWidth">
 					<button type="button" on:click={() => deleteModalButton(c.id)}>Delete</button>
 				</td>
 			</tr>
@@ -473,31 +516,29 @@
 
 	<table>
 		<tr>
-			<th>ID</th>
-			<th>Class</th>
-			<th>Type</th>
+			<th class="classWidth">Class</th>
+			<th class="zeroWidth">Type</th>
 			<th>Name</th>
-			<th>Assigned</th>
-			<th>Due</th>
-			<th>Status</th>
-			<th>Edit</th>
+			<th class="zeroWidth">Assigned</th>
+			<th class="zeroWidth">Due</th>
+			<th class="zeroWidth"></th>
+			<th class="zeroWidth"></th>
 		</tr>
 		{#each shownAssignments as a (a.id)}
 			<tr>
-				<td>{a.id}</td>
-				<td>{classFromId(a.class_id).name}</td>
-				<td>{a.type}</td>
+				<td class="breakWord padding">{classFromId(a.class_id).name}</td>
+				<td class="untightPadding">{a.type}</td>
 				<td>
-					<button type="button" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</button>
+					<a class="breakWord pointer" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</a>
 				</td>
-				<td>{formatDateString(a.assigned_date)}</td>
+				<td class="untightPadding">{formatDateString(a.assigned_date)}</td>
 				{#if a.due_time != ""}
-					<td>{formatDateString(a.due_date)} - {a.due_time}</td>
+					<td class="untightPadding">{formatDateString(a.due_date)} <br /> {a.due_time}</td>
 				{:else}
-					<td>{formatDateString(a.due_date)}</td>
+					<td class="untightPadding">{formatDateString(a.due_date)}</td>
 				{/if}
 
-				<td>
+				<td class="zeroWidth untightPadding">
 					<select value={a.status} on:input={(e) => statusAssignment(e, a.id)}>
 						<option value="Not Started">Not Started</option>
 						<option value="In Progress">In Progress</option>
@@ -505,13 +546,20 @@
 					</select>
 				</td>
 
-				<td>
+				<td class="zeroWidth">
 					<button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
 				</td>
 			</tr>
 		{/each}
 	</table>
+
+	<br />
+	<br />
+	<br />
+
 {/if}
+
+</div>
 
 
 
