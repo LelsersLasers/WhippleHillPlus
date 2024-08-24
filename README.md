@@ -4,7 +4,8 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ## Todo
 
-- CSS
+- email -> username
+- Actually CSS
 
 ## Database
 

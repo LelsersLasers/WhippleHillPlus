@@ -135,12 +135,24 @@
 	let dateStart = formatDateObj(pastSunday);
 	let dateEnd = formatDateObj(nextSunday);
 
+	function missingCheck(a) {
+		// due date is in the past and status is not completed
+		const due_date = new Date(a.due_date);
+		return due_date < today && a.status != "Completed";
+	}
+
+	function assignmentToColor(a) {
+		const missing = missingCheck(a);
+		if (missing) return "#bf616a";
+		const status_color = {
+			"Not Started": "#b48ead",
+			"In Progress": "#ebcb8b",
+			"Completed": "#a3be8c",
+		};
+		return status_color[a.status];
+	}
+
 	$: {
-		function missingCheck(a) {
-			// due date is in the past and status is not completed
-			const due_date = new Date(a.due_date);
-			return due_date < today && a.status != "Completed";
-		}
 		function classFilterCheck(a) {
 			return classFilter.includes(a.class_id);
 		}
@@ -483,6 +495,11 @@ textarea {
 	height: 5em;
 }
 
+
+select:active {
+	background-color: revert !important;
+}
+
 </style>
 
 
@@ -548,7 +565,7 @@ textarea {
 				{/if}
 
 				<td class="zeroWidth untightPadding">
-					<select value={a.status} on:input={(e) => statusAssignment(e, a.id)}>
+					<select value={a.status} on:input={(e) => statusAssignment(e, a.id)} style="background-color: {assignmentToColor(a)}">
 						<option value="Not Started">Not Started</option>
 						<option value="In Progress">In Progress</option>
 						<option value="Completed">Completed</option>
