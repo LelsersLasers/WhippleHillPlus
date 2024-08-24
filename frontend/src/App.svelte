@@ -360,7 +360,6 @@
 		<th>Due</th>
 		<th>Status</th>
 		<th>Edit</th>
-		<th>Delete</th>
 	</tr>
 	{#each assignments as a (a.id)}
 		<tr>
@@ -387,9 +386,6 @@
 
 			<td>
 				<button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
-			</td>
-			<td>
-				
 			</td>
 		</tr>
 	{/each}
