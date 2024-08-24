@@ -13,7 +13,7 @@ const Port = 8080
 const DbPath = "./database.db"
 
 const SessionIdCookieName = "session_id"
-const SessionTimeout = 24 * time.Hour
+const SessionTimeout = 2 * 7 * 24 * time.Hour
 
 const ContextFailCookieNameBase = "context_fail_"
 const ContextFailCookieTimeout = 5 * time.Second
