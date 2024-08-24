@@ -30,6 +30,22 @@
 			if (a.due_time < b.due_time) return -1;
 			if (a.due_time > b.due_time) return 1;
 
+			// Then by class
+			const class_a = classes.find((c) => c.id === a.class_id);
+			const class_b = classes.find((c) => c.id === b.class_id);
+
+			if (class_a.name < class_b.name) return -1;
+			if (class_a.name > class_b.name) return 1;
+
+			// Then by status
+			const status_weight = {
+				"Completed":   2,
+				"In Progress": 1,
+				"Not Started": 0,
+			};
+			if (status_weight[a.status] < status_weight[b.status]) return -1;
+			if (status_weight[a.status] > status_weight[b.status]) return 1;
+
 			// Then by type
 			const type_weight = {
 				"Other":    5,
@@ -41,13 +57,6 @@
 			};
 			if (type_weight[a.type] < type_weight[b.type]) return -1;
 			if (type_weight[a.type] > type_weight[b.type]) return 1;
-
-			// Then by class
-			const class_a = classes.find((c) => c.id === a.class_id);
-			const class_b = classes.find((c) => c.id === b.class_id);
-
-			if (class_a.name < class_b.name) return -1;
-			if (class_a.name > class_b.name) return 1;
 
 			// lastly by name
 			return a.name.localeCompare(b.name);
