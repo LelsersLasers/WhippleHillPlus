@@ -9,14 +9,14 @@
 	let user = {};
 
 	let shownAssignments = [];
-	let showClassIds = [];
+	let classFilter = [];
 
 	data
 		.then((res) => res.json())
 		.then((data) => {
 			assignments = data["assignments"];
 			classes = data["classes"];
-			showClassIds = classes.map((c) => c.id);
+			classFilter = classes.map((c) => c.id);
 			user = data["user"];
 		});
 
@@ -24,7 +24,7 @@
 		classes = classes.sort((a, b) => a.name.localeCompare(b.name));
 	}
 	$: {
-		showClassIds = showClassIds.sort((a, b) => classFromId(a).name.localeCompare(classFromId(b).name));
+		classFilter = classFilter.sort((a, b) => classFromId(a).name.localeCompare(classFromId(b).name));
 	}
 
 	$: {
@@ -111,9 +111,12 @@
 	let assignmentDetailsModalClassId = "";
 
 	let showDateFilterModal = false;
-	let dateFilterType = "future";
+	let dateFilter = "future";
 
 	let showClassFilterModal = false;
+
+	let showStatusFilter = false;
+	let statusFilter = ["Not Started", "In Progress", "Completed"];
 
 	const today = new Date();
 
@@ -131,37 +134,40 @@
 	let dateEnd = formatDateObj(nextSunday);
 
 	$: {
-		function isMissing(a) {
+		function missingCheck(a) {
 			// due date is in the past and status is not completed
 			const due_date = new Date(a.due_date);
 			return due_date < today && a.status != "Completed";
 		}
-		function isInClassFilter(a) {
-			return showClassIds.includes(a.class_id);
+		function classFilterCheck(a) {
+			return classFilter.includes(a.class_id);
+		}
+		function statusFilterCheck(a) {
+			return statusFilter.includes(a.status);
 		}
 
-		if (dateFilterType == "all") {
+		if (dateFilter == "all") {
 			shownAssignments = assignments;
-		} else if (dateFilterType == "week") {
+		} else if (dateFilter == "week") {
 			shownAssignments = assignments.filter((a) => {
 				const due_date = new Date(a.due_date);
 				const assigned_date = new Date(a.assigned_date);
 				const due_date_in_range = due_date >= new Date(dateWeekStart) && due_date <= new Date(dateWeekEnd);
 				const assigned_date_in_range = assigned_date >= new Date(dateWeekStart) && assigned_date <= new Date(dateWeekEnd);
-				return (isInClassFilter(a) && (due_date_in_range || assigned_date_in_range)) || isMissing(a);
+				return (classFilterCheck(a) && statusFilterCheck(a) && (due_date_in_range || assigned_date_in_range)) || missingCheck(a);
 			});
-		} else if (dateFilterType == "future") {
+		} else if (dateFilter == "future") {
 			shownAssignments = assignments.filter((a) => {
 				const due_date = new Date(a.due_date);
-				return (isInClassFilter(a) && due_date > today) || isMissing(a);
+				return (classFilterCheck(a) && statusFilterCheck(a) && due_date > today) || missingCheck(a);
 			});
-		} else if (dateFilterType == "range") {
+		} else if (dateFilter == "range") {
 			shownAssignments = assignments.filter((a) => {
 				const due_date = new Date(a.due_date);
 				const assigned_date = new Date(a.assigned_date);
 				const due_date_in_range = due_date >= new Date(dateStart) && due_date <= new Date(dateEnd);
 				const assigned_date_in_range = assigned_date >= new Date(dateStart) && assigned_date <= new Date(dateEnd);
-				return (isInClassFilter(a) && (due_date_in_range || assigned_date_in_range)) || isMissing(a);
+				return (classFilterCheck(a) && statusFilterCheck(a) && (due_date_in_range || assigned_date_in_range)) || missingCheck(a);
 			});
 		}
 	}
@@ -211,7 +217,7 @@
 			.then((res) => {
 				classes = classes.filter((c) => c.id !== id);
 				assignments = assignments.filter((a) => a.class_id !== id);
-				showClassIds = showClassIds.filter((c) => c !== id);
+				classFilter = classFilter.filter((c) => c !== id);
 
 				deleteClassModalName = "";
 				deleteClassModalId = "";
@@ -252,7 +258,7 @@
 			.then((res) =>res.json())
 			.then((data) => {
 				classes = [...classes, data];
-				showClassIds = [...showClassIds, data.id];
+				classFilter = [...classFilter, data.id];
 				document.getElementById("createClassModalName").value = "";
 				showCreateClassModal = false;
 			})
@@ -456,6 +462,7 @@
 
 <button type="button" on:click={() => showDateFilterModal = true}>Date Filter</button>
 <button type="button" on:click={() => showClassFilterModal = true}>Class Filter</button>
+<button type="button" on:click={() => showStatusFilter = true}>Status Filter</button>
 
 <table>
 	<tr>
@@ -660,26 +667,26 @@
 	<h2>Date Filter</h2>
 
 	<label for="all">
-		<input type="radio" id="all" value="all" bind:group={dateFilterType}>
+		<input type="radio" id="all" value="all" bind:group={dateFilter}>
 		All
 	</label>
 
 	<label for="week">
-		<input type="radio" id="week" value="week" bind:group={dateFilterType}>
+		<input type="radio" id="week" value="week" bind:group={dateFilter}>
 		This Week
 	</label>
 
 	<label for="future">
-		<input type="radio" id="future" value="future" bind:group={dateFilterType}>
+		<input type="radio" id="future" value="future" bind:group={dateFilter}>
 		Future
 	</label>
 
 	<label for="range">
-		<input type="radio" id="range" value="range" bind:group={dateFilterType}>
+		<input type="radio" id="range" value="range" bind:group={dateFilter}>
 		Custom Range
 	</label>
 
-	{#if dateFilterType == "range"}
+	{#if dateFilter == "range"}
 		<label for="dateStart">Start Date:</label>
 		<input type="date" id="dateStart" bind:value={dateStart}>
 		<label for="dateEnd">End Date:</label>
@@ -691,8 +698,18 @@
 	<h2>Class Filter</h2>
 	{#each classes as c (c.id)}
 		<label for={c.id}>
-			<input type="checkbox" id={c.id} value={c.id} bind:group={showClassIds}>
+			<input type="checkbox" id={c.id} value={c.id} bind:group={classFilter}>
 			{c.name}
+		</label>
+	{/each}
+</Modal>
+
+<Modal bind:showModal={showStatusFilter}>
+	<h2>Status Filter</h2>
+	{#each ["Not Started", "In Progress", "Completed"] as s}
+		<label for={s}>
+			<input type="checkbox" id={s} value={s} bind:group={statusFilter}>
+			{s}
 		</label>
 	{/each}
 </Modal>

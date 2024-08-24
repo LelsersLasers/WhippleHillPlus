@@ -5,8 +5,6 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 ## Todo
 
 - Classes and assignments in different "tabs"
-- Modals:
-	- Assignment filter
 - CSS
 
 ## Database
