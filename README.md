@@ -5,7 +5,10 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 ## Todo
 
 - Classes and assignments in different "tabs"
-- Date ranges for assignments
+- Modals:
+	- Date ranges for assignments
+	- Class filter
+	- Assignment filter
 - CSS
 
 ## Database

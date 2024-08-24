@@ -7,6 +7,7 @@
 	let assignments = [];
 	let classes = [];
 	let user = {};
+
 	data
 		.then((res) => res.json())
 		.then((data) => {
@@ -62,6 +63,30 @@
 			return a.name.localeCompare(b.name);
 		}
 		assignments = assignments.sort(sortAssignments);
+	}
+
+	let shown_assignments = [];
+
+	let today = new Date();
+
+	const pastSunday = new Date(today);
+	pastSunday.setDate(today.getDate() - today.getDay());
+	
+	const nextSunday = new Date(today);
+	if (7 - today.getDay() < 2) nextSunday.setDate(today.getDate() + (14 - today.getDay()));
+	else                        nextSunday.setDate(today.getDate() + (7  - today.getDay()));
+	
+	let dateStart = formatDateObj(pastSunday);
+	let dateEnd = formatDateObj(nextSunday);
+
+	$: {
+		shown_assignments = assignments.filter((a) => {
+			const due_date = new Date(a.due_date);
+			const assigned_date = new Date(a.assigned_date);
+			const due_date_in_range = due_date >= new Date(dateStart) && due_date <= new Date(dateEnd);
+			const assigned_date_in_range = assigned_date >= new Date(dateStart) && assigned_date <= new Date(dateEnd);
+			return due_date_in_range || assigned_date_in_range;
+		});
 	}
 
 	
@@ -385,6 +410,13 @@
 </table>
 
 <h2>Your Assignments</h2>
+
+<label for="dateStart">Date range start:</label>
+<input type="date" id="dateStart" bind:value={dateStart}>
+
+<label for="dateEnd">Date range end:</label>
+<input type="date" id="dateEnd" bind:value={dateEnd}>
+
 <table>
 	<tr>
 		<th>ID</th>
@@ -396,7 +428,7 @@
 		<th>Status</th>
 		<th>Edit</th>
 	</tr>
-	{#each assignments as a (a.id)}
+	{#each shown_assignments as a (a.id)}
 		<tr>
 			<td>{a.id}</td>
 			<td>{classFromId(a.class_id).name}</td>
