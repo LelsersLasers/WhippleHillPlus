@@ -18,7 +18,7 @@ const SessionTimeout = 2 * 7 * 24 * time.Hour
 const ContextFailCookieNameBase = "context_fail_"
 const ContextFailCookieTimeout = 5 * time.Second
 
-const SvelteDir = "./../frontend/public"
+const SvelteDir = "./../public"
 
 var (
 	db    *sql.DB

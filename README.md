@@ -1,9 +1,10 @@
-# Whipple Hill Clone
+# Whipple Hill+
 
 A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ## Todo
 
+- favicon
 - Actually CSS
 
 ## Database
