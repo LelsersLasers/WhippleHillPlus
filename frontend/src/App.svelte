@@ -71,6 +71,13 @@
 	let updateClassModalName = "";
 	let updateClassModalId = "";
 
+	let showDeleteClassModal = false;
+	let deleteClassModalName = "";
+	let deleteClassModalId = "";
+	let deleteClassModalTimer = 15;
+	let deleteClassModalTimerInterval = null;
+
+
 	let showCreateAssignmentModal = false;
 
 	let showUpdateAssignmentModal = false;
@@ -139,7 +146,26 @@
 			.then((res) => {
 				classes = classes.filter((c) => c.id !== id);
 				assignments = assignments.filter((a) => a.class_id !== id);
+
+				deleteClassModalName = "";
+				deleteClassModalId = "";
+				deleteClassModalTimer = 0;
+				showDeleteClassModal = false;
 			})
+	}
+	function deleteModalButton(id) {
+		const c = classes.find((c) => c.id === id);
+		deleteClassModalName = c.name;
+		deleteClassModalId = c.id;
+		deleteClassModalTimer = 15;
+		if (deleteClassModalTimerInterval) clearInterval(deleteClassModalTimerInterval);
+		deleteClassModalTimerInterval = setInterval(() => {
+			deleteClassModalTimer -= 1;
+			if (deleteClassModalTimer <= 0) {
+				clearInterval(deleteClassModalTimerInterval);
+			}
+		}, 1000);
+		showDeleteClassModal = true;
 	}
 	function updateClassButton(id) {
 		const c = classes.find((c) => c.id === id);
@@ -352,7 +378,7 @@
 				<button type="button" on:click={() => updateClassButton(c.id)}>Edit</button>
 			</td>
 			<td>
-				<button type="button" on:click={() => deleteClassButton(c.id)}>Delete</button>
+				<button type="button" on:click={() => deleteModalButton(c.id)}>Delete</button>
 			</td>
 		</tr>
 	{/each}
@@ -421,6 +447,17 @@
 		<input type="hidden" name="id" bind:value={updateClassModalId}>
 		<button type="submit">Update</button>
 	</form>
+</Modal>
+
+<Modal bind:showModal={showDeleteClassModal}>
+	<h2>Delete Class</h2>
+	<p>Are you sure you want to delete the class "{deleteClassModalName}"?</p>
+	<p>Deleting the class will delete all assignments associated with it.</p>
+	{#if deleteClassModalTimer > 0}
+		<p>Wait {deleteClassModalTimer} seconds before deleting.</p>
+	{:else}
+		<button type="button" on:click={() => deleteClassButton(deleteClassModalId)}>Yes</button>
+	{/if}
 </Modal>
 
 
