@@ -15,6 +15,46 @@
 			user = data["user"];
 		});
 
+	$: {
+		classes = classes.sort((a, b) => a.name.localeCompare(b.name));
+	}
+	$: {
+		function sortAssignments(a, b) {
+			// First by date
+			if (a.due_date < b.due_date) return -1;
+			if (a.due_date > b.due_date) return 1;
+			
+			// Then by time
+			if (a.due_time != "" && b.due_time == "") return -1;
+			if (a.due_time == "" && b.due_time != "") return 1;
+			if (a.due_time < b.due_time) return -1;
+			if (a.due_time > b.due_time) return 1;
+
+			// Then by type
+			const type_weight = {
+				"Other":    5,
+				"Homework": 4,
+				"Project":  3,
+				"Paper":    2,
+				"Quiz":     1,
+				"Test":     0,
+			};
+			if (type_weight[a.type] < type_weight[b.type]) return -1;
+			if (type_weight[a.type] > type_weight[b.type]) return 1;
+
+			// Then by class
+			const class_a = classes.find((c) => c.id === a.class_id);
+			const class_b = classes.find((c) => c.id === b.class_id);
+
+			if (class_a.name < class_b.name) return -1;
+			if (class_a.name > class_b.name) return 1;
+
+			// lastly by name
+			return a.name.localeCompare(b.name);
+		}
+		assignments = assignments.sort(sortAssignments);
+	}
+
 	
 	let showCreateClassModal = false;
 
@@ -27,7 +67,7 @@
 	let showUpdateAssignmentModal = false;
 	let updateAssignmentModalName = "";
 	let updateAssignmentModalDescription = "";
-	let updateAssignmentModalAssignedDate = "";
+	let updateAssignmentModalAssignedDate = formatDateObj(new Date());
 	let updateAssignmentModalDueDate = "";
 	let updateAssignmentModalDueTime = "";
 	let updateAssignmentModalStatus = "";
@@ -44,6 +84,22 @@
 	let assignmentDetailsModalStatus = "";
 	let assignmentDetailsModalType = "";
 	let assignmentDetailsModalClassId = "";
+
+
+	function formatDateObj(date) {
+		// Date to string in the format "yyyy-MM-dd"
+		let year = date.getFullYear();
+		let month = String(date.getMonth() + 1).padStart(2, '0');
+		let day = String(date.getDate()).padStart(2, '0');
+		
+		return `${year}-${month}-${day}`;
+	}
+	
+	function formatDateString(str) {
+		// "yyyy-MM-dd" -> "m/d/yy"
+		let [year, month, day] = str.split("-");
+		return `${parseInt(month)}/${parseInt(day)}/${year.slice(2)}`;
+	}
 
 
 	function formDataWithoutReload(e) {
@@ -135,6 +191,16 @@
 		})
 			.then((res) => {
 				assignments = assignments.filter((a) => a.id !== id);
+			
+				updateAssignmentModalName = "";
+				updateAssignmentModalDescription = "";
+				updateAssignmentModalAssignedDate = formatDateObj(new Date());
+				updateAssignmentModalDueDate = "";
+				updateAssignmentModalDueTime = "";
+				updateAssignmentModalStatus = "";
+				updateAssignmentModalType = "";
+				updateAssignmentModalClassId = "";
+				showUpdateAssignmentModal = false;
 			})
 	}
 	function updateAssignmentButton(id) {
@@ -178,12 +244,12 @@
 				assignments = [...assignments, data];
 				document.getElementById("createAssignmentModalName").value = "";
 				document.getElementById("createAssignmentModalDescription").value = "";
-				document.getElementById("createAssignmentModalAssignedDate").value = "";
+				document.getElementById("createAssignmentModalAssignedDate").valueAsDate = new Date();
 				document.getElementById("createAssignmentModalDueDate").value = "";
 				document.getElementById("createAssignmentModalDueTime").value = "";
 				document.getElementById("createAssignmentModalStatus").value = "Not Started";
 				document.getElementById("createAssignmentModalType").value = "Homework";
-				document.getElementById("createAssignmentModalClassId").value = "";
+				// document.getElementById("createAssignmentModalClassId").value = "";
 				showCreateAssignmentModal = false;
 			})
 	};
@@ -226,7 +292,7 @@
 				});
 				updateAssignmentModalName = "";
 				updateAssignmentModalDescription = "";
-				updateAssignmentModalAssignedDate = "";
+				updateAssignmentModalAssignedDate = formatDateObj(new Date());
 				updateAssignmentModalDueDate = "";
 				updateAssignmentModalDueTime = "";
 				updateAssignmentModalStatus = "";
@@ -304,8 +370,12 @@
 			<td>
 				<button type="button" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</button>
 			</td>
-			<td>{a.assigned_date}</td>
-			<td>{a.due_date} - {a.due_time}</td>
+			<td>{formatDateString(a.assigned_date)}</td>
+			{#if a.due_time != ""}
+				<td>{formatDateString(a.due_date)} - {a.due_time}</td>
+			{:else}
+				<td>{formatDateString(a.due_date)}</td>
+			{/if}
 
 			<td>
 				<select value={a.status} on:input={(e) => statusAssignment(e, a.id)}>
@@ -319,7 +389,7 @@
 				<button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
 			</td>
 			<td>
-				<button type="button" on:click={() => deleteAssignmentButton(a.id)}>Delete</button>
+				
 			</td>
 		</tr>
 	{/each}
@@ -398,6 +468,8 @@
 				<option value={c.id}>{c.name}</option>
 			{/each}
 		</select>
+
+		<br />
 		<button type="submit">Create</button>
 	</form>
 </Modal>
@@ -452,7 +524,9 @@
 
 		<input type="hidden" name="id" value={updateAssignmentModalId}>
 
+		<br />
 		<button type="submit">Update</button>
+		<button type="button" on:click={() => deleteAssignmentButton(updateAssignmentModalId)}>Delete</button>
 	</form>
 </Modal>
 
