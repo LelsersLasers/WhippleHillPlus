@@ -8,17 +8,25 @@
 	let classes = [];
 	let user = {};
 
+	let shownAssignments = [];
+	let showClassIds = [];
+
 	data
 		.then((res) => res.json())
 		.then((data) => {
 			assignments = data["assignments"];
 			classes = data["classes"];
+			showClassIds = classes.map((c) => c.id);
 			user = data["user"];
 		});
 
 	$: {
 		classes = classes.sort((a, b) => a.name.localeCompare(b.name));
 	}
+	$: {
+		showClassIds = showClassIds.sort((a, b) => classFromId(a).name.localeCompare(classFromId(b).name));
+	}
+
 	$: {
 		function sortAssignments(a, b) {
 			// First by date
@@ -105,6 +113,8 @@
 	let showDateFilterModal = false;
 	let dateFilterType = "future";
 
+	let showClassFilterModal = false;
+
 	const today = new Date();
 
 	const pastSunday = new Date(today);
@@ -120,14 +130,16 @@
 	let dateStart = formatDateObj(pastSunday);
 	let dateEnd = formatDateObj(nextSunday);
 
-	function isMissing(a) {
-		// due date is in the past and status is not completed
-		const due_date = new Date(a.due_date);
-		return due_date < today && a.status != "Completed";
-	}
-
-	let shownAssignments = [];
 	$: {
+		function isMissing(a) {
+			// due date is in the past and status is not completed
+			const due_date = new Date(a.due_date);
+			return due_date < today && a.status != "Completed";
+		}
+		function isInClassFilter(a) {
+			return showClassIds.includes(a.class_id);
+		}
+
 		if (dateFilterType == "all") {
 			shownAssignments = assignments;
 		} else if (dateFilterType == "week") {
@@ -136,12 +148,12 @@
 				const assigned_date = new Date(a.assigned_date);
 				const due_date_in_range = due_date >= new Date(dateWeekStart) && due_date <= new Date(dateWeekEnd);
 				const assigned_date_in_range = assigned_date >= new Date(dateWeekStart) && assigned_date <= new Date(dateWeekEnd);
-				return due_date_in_range || assigned_date_in_range || isMissing(a);
+				return (isInClassFilter(a) && (due_date_in_range || assigned_date_in_range)) || isMissing(a);
 			});
 		} else if (dateFilterType == "future") {
 			shownAssignments = assignments.filter((a) => {
 				const due_date = new Date(a.due_date);
-				return due_date > today || isMissing(a);
+				return (isInClassFilter(a) && due_date > today) || isMissing(a);
 			});
 		} else if (dateFilterType == "range") {
 			shownAssignments = assignments.filter((a) => {
@@ -149,7 +161,7 @@
 				const assigned_date = new Date(a.assigned_date);
 				const due_date_in_range = due_date >= new Date(dateStart) && due_date <= new Date(dateEnd);
 				const assigned_date_in_range = assigned_date >= new Date(dateStart) && assigned_date <= new Date(dateEnd);
-				return due_date_in_range || assigned_date_in_range || isMissing(a);
+				return (isInClassFilter(a) && (due_date_in_range || assigned_date_in_range)) || isMissing(a);
 			});
 		}
 	}
@@ -199,6 +211,7 @@
 			.then((res) => {
 				classes = classes.filter((c) => c.id !== id);
 				assignments = assignments.filter((a) => a.class_id !== id);
+				showClassIds = showClassIds.filter((c) => c !== id);
 
 				deleteClassModalName = "";
 				deleteClassModalId = "";
@@ -239,6 +252,7 @@
 			.then((res) =>res.json())
 			.then((data) => {
 				classes = [...classes, data];
+				showClassIds = [...showClassIds, data.id];
 				document.getElementById("createClassModalName").value = "";
 				showCreateClassModal = false;
 			})
@@ -441,6 +455,7 @@
 <h2>Your Assignments</h2>
 
 <button type="button" on:click={() => showDateFilterModal = true}>Date Filter</button>
+<button type="button" on:click={() => showClassFilterModal = true}>Class Filter</button>
 
 <table>
 	<tr>
@@ -670,4 +685,14 @@
 		<label for="dateEnd">End Date:</label>
 		<input type="date" id="dateEnd" bind:value={dateEnd}>
 	{/if}
+</Modal>
+
+<Modal bind:showModal={showClassFilterModal}>
+	<h2>Class Filter</h2>
+	{#each classes as c (c.id)}
+		<label for={c.id}>
+			<input type="checkbox" id={c.id} value={c.id} bind:group={showClassIds}>
+			{c.name}
+		</label>
+	{/each}
 </Modal>

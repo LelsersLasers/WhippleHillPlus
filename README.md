@@ -6,7 +6,6 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 - Classes and assignments in different "tabs"
 - Modals:
-	- Date ranges for assignments
 	- Class filter
 	- Assignment filter
 - CSS
