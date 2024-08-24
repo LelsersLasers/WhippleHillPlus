@@ -4,6 +4,8 @@
 	export let data;
 	export let api;
 
+	let page = "assignments";
+
 	let assignments = [];
 	let classes = [];
 	let user = {};
@@ -436,79 +438,83 @@
 <button type="button" on:click={() => window.location.href = "/logout_user"}>Logout</button>
 
 
-<h2>Your Classes</h2>
-<table>
-	<tr>
-		<th>ID</th>
-		<th>Name</th>
-		<th>Edit</th>
-		<th>Delete</th>
-	</tr>
-	{#each classes as c (c.id)}
+{#if page == "classes"}
+	<h2>Your Classes</h2>
+	<button type="button" on:click={() => page = "assignments"}>View Assignments</button>
+	<button type="button" on:click={() => showCreateClassModal = true}>Create Class</button>
+
+	<table>
 		<tr>
-			<td>{c.id}</td>
-			<td>{c.name}</td>
-			<td>
-				<button type="button" on:click={() => updateClassButton(c.id)}>Edit</button>
-			</td>
-			<td>
-				<button type="button" on:click={() => deleteModalButton(c.id)}>Delete</button>
-			</td>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Edit</th>
+			<th>Delete</th>
 		</tr>
-	{/each}
-</table>
+		{#each classes as c (c.id)}
+			<tr>
+				<td>{c.id}</td>
+				<td>{c.name}</td>
+				<td>
+					<button type="button" on:click={() => updateClassButton(c.id)}>Edit</button>
+				</td>
+				<td>
+					<button type="button" on:click={() => deleteModalButton(c.id)}>Delete</button>
+				</td>
+			</tr>
+		{/each}
+	</table>
+{:else if page == "assignments"}
+	<h2>Your Assignments</h2>
+	<button type="button" on:click={() => page = "classes"}>View Classes</button>
+	<button type="button" on:click={() => showCreateAssignmentModal = true}>Create Assignment</button>
+	<button type="button" on:click={() => showDateFilterModal = true}>Date Filter</button>
+	<button type="button" on:click={() => showClassFilterModal = true}>Class Filter</button>
+	<button type="button" on:click={() => showStatusFilter = true}>Status Filter</button>
 
-
-<h2>Your Assignments</h2>
-
-<button type="button" on:click={() => showDateFilterModal = true}>Date Filter</button>
-<button type="button" on:click={() => showClassFilterModal = true}>Class Filter</button>
-<button type="button" on:click={() => showStatusFilter = true}>Status Filter</button>
-
-<table>
-	<tr>
-		<th>ID</th>
-		<th>Class</th>
-		<th>Type</th>
-		<th>Name</th>
-		<th>Assigned</th>
-		<th>Due</th>
-		<th>Status</th>
-		<th>Edit</th>
-	</tr>
-	{#each shownAssignments as a (a.id)}
+	<table>
 		<tr>
-			<td>{a.id}</td>
-			<td>{classFromId(a.class_id).name}</td>
-			<td>{a.type}</td>
-			<td>
-				<button type="button" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</button>
-			</td>
-			<td>{formatDateString(a.assigned_date)}</td>
-			{#if a.due_time != ""}
-				<td>{formatDateString(a.due_date)} - {a.due_time}</td>
-			{:else}
-				<td>{formatDateString(a.due_date)}</td>
-			{/if}
-
-			<td>
-				<select value={a.status} on:input={(e) => statusAssignment(e, a.id)}>
-					<option value="Not Started">Not Started</option>
-					<option value="In Progress">In Progress</option>
-					<option value="Completed">Completed</option>
-				</select>
-			</td>
-
-			<td>
-				<button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
-			</td>
+			<th>ID</th>
+			<th>Class</th>
+			<th>Type</th>
+			<th>Name</th>
+			<th>Assigned</th>
+			<th>Due</th>
+			<th>Status</th>
+			<th>Edit</th>
 		</tr>
-	{/each}
-</table>
+		{#each shownAssignments as a (a.id)}
+			<tr>
+				<td>{a.id}</td>
+				<td>{classFromId(a.class_id).name}</td>
+				<td>{a.type}</td>
+				<td>
+					<button type="button" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</button>
+				</td>
+				<td>{formatDateString(a.assigned_date)}</td>
+				{#if a.due_time != ""}
+					<td>{formatDateString(a.due_date)} - {a.due_time}</td>
+				{:else}
+					<td>{formatDateString(a.due_date)}</td>
+				{/if}
+
+				<td>
+					<select value={a.status} on:input={(e) => statusAssignment(e, a.id)}>
+						<option value="Not Started">Not Started</option>
+						<option value="In Progress">In Progress</option>
+						<option value="Completed">Completed</option>
+					</select>
+				</td>
+
+				<td>
+					<button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
+				</td>
+			</tr>
+		{/each}
+	</table>
+{/if}
 
 
 
-<button type="button" on:click={() => showCreateClassModal = true}>Create Class</button>
 <Modal bind:showModal={showCreateClassModal}>
 	<h2>Create Class</h2>
 	<form id="createClass">
@@ -541,8 +547,6 @@
 </Modal>
 
 
-
-<button type="button" on:click={() => showCreateAssignmentModal = true}>Create Assignment</button>
 <Modal bind:showModal={showCreateAssignmentModal}>
 	<h2>Create Assignment</h2>
 	<form id="createAssignment">
