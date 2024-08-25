@@ -4,7 +4,6 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ## Todo
 
-- WhippleHillClone -> WhippleHillPlus
 - Actually CSS
 - Put on server
 
