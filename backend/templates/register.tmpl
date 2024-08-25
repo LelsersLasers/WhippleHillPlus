@@ -4,19 +4,23 @@
 	<form action="/register_user" method="post">
 		<div>
 			<label for="username">Username:</label>
-			<input type="text" id="username" name="username" value="{{.username}}" required>
+			<br />
+			<input type="text" id="username" name="username" value="{{.username}}" autocomplete="off" required>
 		</div>
 		<div>
 			<label for="name">Name:</label>
-			<input type="text" id="name" name="name" value="{{.name}}" required>
+			<br />
+			<input type="text" id="name" name="name" value="{{.name}}" autocomplete="off" required>
 		</div>
 		<div>
 			<label for="password_1">Password:</label>
-			<input type="password" id="password_1" name="password_1" value="{{.password_1}}" required>
+			<br />
+			<input type="password" id="password_1" name="password_1" value="{{.password_1}}" autocomplete="off" required>
 		</div>
 		<div>
 			<label for="password_2">Confirm Password:</label>
-			<input type="password" id="password_2" name="password_2" value="{{.password_2}}" required>
+			<br />
+			<input type="password" id="password_2" name="password_2" value="{{.password_2}}" autocomplete="off" required>
 		</div>
 
 		{{if ne .error_message ""}}
@@ -24,7 +28,6 @@
 		{{end}}
 
 		<button type="submit">Register</button>
+		<p>Already have an account? <a href="/login">Login</a></p>
 	</form>
-
-	<p>Already have an account? <a href="/login">Login</a></p>
 {{end}}

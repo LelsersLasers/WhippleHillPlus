@@ -4,10 +4,12 @@
 	<form action="/login_user" method="post">
 		<div>
 			<label for="username">Username:</label>
+			<br />
 			<input type="text" id="username" name="username" value="{{.username}}" required>
 		</div>
 		<div>
 			<label for="password">Password:</label>
+			<br />
 			<input type="password" id="password" name="password" value="{{.password}}" required>
 		</div>
 
@@ -16,7 +18,6 @@
 		{{end}}
 
 		<button type="submit">Login</button>
+		<p>Don't have an account? <a href="/register">Register</a></p>
 	</form>
-
-	<p>Don't have an account? <a href="/register">Register</a></p>
 {{end}}

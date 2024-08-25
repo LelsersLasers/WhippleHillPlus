@@ -4,8 +4,6 @@ A mimic of Bishop's Whipple Hill for assignment and due date management
 
 ## Todo
 
-- Disclaimer
-- Workable mobile css
 - Actually CSS
 - Put on server
 

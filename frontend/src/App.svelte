@@ -441,9 +441,16 @@
 <style>
 
 #holder {
-	width: 80%;
+	width: 100%;
 	margin: 0 auto;
 }
+
+@media (min-width: 576px) {
+	#holder {
+		width: 80%;
+	}
+}
+
 
 .description {
 	white-space: pre-line;
@@ -508,7 +515,6 @@ select:active {
 <div id="holder">
 <h1>Welcome, {user.name}!</h1>
 <button type="button" on:click={() => window.location.href = "/logout_user"}>Logout</button>
-
 
 {#if page == "classes"}
 	<h2>Your Classes</h2>
@@ -583,7 +589,6 @@ select:active {
 	<br />
 	<br />
 	<br />
-
 {/if}
 
 </div>
