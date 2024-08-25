@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd /home/millankumar/code/WhippleHillClone/backend
+cd /home/millankumar/code/WhippleHillPlus/backend
 ./backend
