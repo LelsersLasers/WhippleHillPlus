@@ -121,7 +121,7 @@
 	let statusFilter = ["Not Started", "In Progress", "Completed"];
 
 	const today = new Date();
-	today.setTime(0);
+	today.setHours(0, 0, 0, 0);
 
 	const pastSunday = new Date(today);
 	pastSunday.setDate(today.getDate() - today.getDay());
