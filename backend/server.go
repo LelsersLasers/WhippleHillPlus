@@ -57,7 +57,7 @@ func main() {
 
 	fmt.Printf("Server is running on port %d\n", Port)
 
-	addr := fmt.Sprintf(":%d", Port)
+	addr := fmt.Sprintf("[::]:%d", Port)
 	err := http.ListenAndServe(addr, middlewareHandler)
 	if err != nil {
 		fmt.Println("Error starting server: ", err)
