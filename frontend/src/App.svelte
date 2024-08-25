@@ -746,8 +746,13 @@ select:active {
 	<h2>Assignment Details</h2>
 	<p>Name: {assignmentDetailsModalName}</p>
 	<p class="description">Description: <br/>{assignmentDetailsModalDescription}</p>
-	<p>Assigned Date: {assignmentDetailsModalAssignedDate}</p>
-	<p>Due Date: {assignmentDetailsModalDueDate} - {assignmentDetailsModalDueTime}</p>
+	<p>Assigned Date: {formatDateString(assignmentDetailsModalAssignedDate)}</p>
+
+	{#if assignmentDetailsModalDueTime != ""}
+		<p>Due Date: {formatDateString(assignmentDetailsModalDueDate)} - {assignmentDetailsModalDueTime}</p>
+	{:else}
+		<p>Due Date: {formatDateString(assignmentDetailsModalDueDate)}</p>
+	{/if}
 	<p>Status: {assignmentDetailsModalStatus}</p>
 	<p>Type: {assignmentDetailsModalType}</p>
 	<p>Class: {classFromId(assignmentDetailsModalClassId)?.name}</p>
