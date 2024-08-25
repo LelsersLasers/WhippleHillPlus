@@ -23,7 +23,13 @@
 		});
 
 	$: {
-		classes = classes.sort((a, b) => a.name.localeCompare(b.name));
+		// Sort "other" to the bottom
+		// Otherwise alphabetically
+		classes = classes.sort((a, b) => {
+			if (a.name.toLowerCase() === "other") return 1;
+			if (b.name.toLowerCase() === "other") return -1;
+			return a.name.localeCompare(b.name);
+		});
 	}
 	$: {
 		classFilter = classFilter.sort((a, b) => classFromId(a).name.localeCompare(classFromId(b).name));
