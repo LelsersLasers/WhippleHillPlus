@@ -1,3 +1,5 @@
+*.db
+
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
@@ -156,4 +158,3 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-backend/database.db
