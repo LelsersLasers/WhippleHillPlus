@@ -78,7 +78,13 @@
 			// lastly by name
 			return a.name.localeCompare(b.name);
 		}
+		function convertToLocalTime(a) {
+			if (a.due_date.endsWith("Z")) {
+				a.due_date = a.due_date.slice(0, -1);
+			}
+		}
 		assignments = assignments.sort(sortAssignments);
+		assignments.forEach(convertToLocalTime);
 	}
 
 	
@@ -180,7 +186,7 @@
 		} else if (dateFilter == "future") {
 			shownAssignments = assignments.filter((a) => {
 				const due_date = new Date(a.due_date);
-				return (classFilterCheck(a) && statusFilterCheck(a) && due_date > today) || missingCheck(a);
+				return (classFilterCheck(a) && statusFilterCheck(a) && due_date >= today) || missingCheck(a);
 			});
 		} else if (dateFilter == "range") {
 			shownAssignments = assignments.filter((a) => {
