@@ -82,9 +82,22 @@
 			if (a.due_date.endsWith("Z")) {
 				a.due_date = a.due_date.slice(0, -1);
 			}
+			if (a.assigned_date.endsWith("Z")) {
+				a.assigned_date = a.assigned_date.slice(0, -1);
+			}
 		}
 		assignments = assignments.sort(sortAssignments);
 		assignments.forEach(convertToLocalTime);
+	}
+
+	function localDate() {
+		const date = new Date();
+		const timeOffset = date.getTimezoneOffset();
+		const hoursOffset = Math.floor(timeOffset / 60);
+		const minutesOffset = timeOffset % 60;
+		date.setHours(date.getHours() - hoursOffset);
+		date.setMinutes(date.getMinutes() - minutesOffset);
+		return date;
 	}
 
 	
@@ -106,7 +119,7 @@
 	let showUpdateAssignmentModal = false;
 	let updateAssignmentModalName = "";
 	let updateAssignmentModalDescription = "";
-	let updateAssignmentModalAssignedDate = formatDateObj(new Date());
+	let updateAssignmentModalAssignedDate = formatDateObj(localDate());
 	let updateAssignmentModalDueDate = "";
 	let updateAssignmentModalDueTime = "";
 	let updateAssignmentModalStatus = "";
@@ -150,8 +163,20 @@
 
 	function missingCheck(a) {
 		// due date is in the past and status is not completed
+		if (a.status == "Completed") return false;
+
 		const due_date = new Date(a.due_date);
-		return due_date < today && a.status != "Completed";
+		if (a.due_time != "") {
+			const todayWithTime = new Date();
+
+			const due_time = a.due_time.split(":");
+			due_date.setHours(due_time[0]);
+			due_date.setMinutes(due_time[1]);
+
+			return due_date < todayWithTime;
+		} else {
+			return due_date < today;
+		}
 	}
 
 	function assignmentToColor(a) {
@@ -329,7 +354,7 @@
 			
 				updateAssignmentModalName = "";
 				updateAssignmentModalDescription = "";
-				updateAssignmentModalAssignedDate = formatDateObj(new Date());
+				updateAssignmentModalAssignedDate = formatDateObj(localDate());
 				updateAssignmentModalDueDate = "";
 				updateAssignmentModalDueTime = "";
 				updateAssignmentModalStatus = "";
@@ -342,7 +367,6 @@
 		const a = assignments.find((a) => a.id === id);
 		updateAssignmentModalName = a.name;
 		updateAssignmentModalDescription = a.description;
-		console.log(a.description);
 		updateAssignmentModalAssignedDate = a.assigned_date.slice(0, "yyyy-MM-dd".length);
 		updateAssignmentModalDueDate = a.due_date.slice(0, "yyyy-MM-dd".length);
 		updateAssignmentModalDueTime = a.due_time;
@@ -379,7 +403,7 @@
 				assignments = [...assignments, data];
 				document.getElementById("createAssignmentModalName").value = "";
 				document.getElementById("createAssignmentModalDescription").value = "";
-				document.getElementById("createAssignmentModalAssignedDate").valueAsDate = new Date();
+				document.getElementById("createAssignmentModalAssignedDate").valueAsDate = localDate();
 				document.getElementById("createAssignmentModalDueDate").value = "";
 				document.getElementById("createAssignmentModalDueTime").value = "";
 				document.getElementById("createAssignmentModalStatus").value = "Not Started";
@@ -427,7 +451,7 @@
 				});
 				updateAssignmentModalName = "";
 				updateAssignmentModalDescription = "";
-				updateAssignmentModalAssignedDate = formatDateObj(new Date());
+				updateAssignmentModalAssignedDate = formatDateObj(localDate());
 				updateAssignmentModalDueDate = "";
 				updateAssignmentModalDueTime = "";
 				updateAssignmentModalStatus = "";
@@ -443,7 +467,7 @@
 		document.getElementById("createClass").addEventListener("submit", createClass);
 		document.getElementById("updateClass").addEventListener("submit", updateClass);
 
-		document.getElementById("createAssignmentModalAssignedDate").valueAsDate = new Date();
+		document.getElementById("createAssignmentModalAssignedDate").valueAsDate = localDate();
 		document.getElementById("createAssignment").addEventListener("submit", createAssignment);
 		document.getElementById("updateAssignment").addEventListener("submit", updateAssignment);
 	});
