@@ -50,6 +50,7 @@
 		border-radius: 0.2em;
 		border: none;
 		padding: 0;
+		overflow-y: scroll;
 	}
 
 	@media (min-width: 800px) {
