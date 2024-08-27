@@ -45,11 +45,20 @@
 
 <style>
 	dialog {
-		width: 60%;
+		/* width: 60%; */
+		width: 95%;
 		border-radius: 0.2em;
 		border: none;
 		padding: 0;
 	}
+
+	@media (min-width: 800px) {
+		dialog {
+			width: 60%;
+		}
+	}
+
+
 	dialog::backdrop {
 		background: rgba(0, 0, 0, 0.3);
 	}

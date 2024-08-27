@@ -481,7 +481,7 @@
 	margin: 0 auto;
 }
 
-@media (min-width: 576px) {
+@media (min-width: 800px) {
 	#holder {
 		width: 80%;
 	}
