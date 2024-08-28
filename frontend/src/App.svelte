@@ -14,13 +14,21 @@
 	let shownAssignments = [];
 	let classFilter = [];
 
+	let unique = {};
+
 	data
 		.then((res) => res.json())
 		.then((data) => {
 			assignments = data["assignments"];
+
 			classes = data["classes"];
 			classFilter = classes.map((c) => c.id);
 			user = data["user"];
+
+			unique = {};
+			assignments.forEach((a) => {
+				unique[a.id] = 0;
+			});
 		});
 
 	function sortClasses(a, b) {
@@ -355,6 +363,7 @@
 		})
 			.then((res) => {
 				assignments = assignments.filter((a) => a.id !== id);
+				unique[id] += 1;
 			
 				updateAssignmentModalName = "";
 				updateAssignmentModalDescription = "";
@@ -405,6 +414,8 @@
 			.then((res) => res.json())
 			.then((data) => {
 				assignments = [...assignments, data];
+				unique[data.id] += 1;
+
 				document.getElementById("createAssignmentModalName").value = "";
 				document.getElementById("createAssignmentModalDescription").value = "";
 				document.getElementById("createAssignmentModalAssignedDate").valueAsDate = localDate();
@@ -435,6 +446,7 @@
 					if (a.id === data.id) return data;
 					else                  return a;
 				});
+				unique[data.id] += 1;
 			})
 	}
 	function updateAssignment(e) {
@@ -453,6 +465,8 @@
 					if (a.id === data.id) return data;
 					else                  return a;
 				});
+				unique[data.id] += 1;
+
 				updateAssignmentModalName = "";
 				updateAssignmentModalDescription = "";
 				updateAssignmentModalAssignedDate = formatDateObj(localDate());
@@ -600,33 +614,35 @@ select:active {
 			<th class="zeroWidth"></th>
 		</tr>
 		{#each shownAssignments as a (a.id)}
-			<tr
-				in:fly|global={{ duration: 300, x: -200 }}
-			>
-				<td class="breakWord padding">{classFromId(a.class_id).name}</td>
-				<td class="untightPadding">{a.type}</td>
-				<td>
-					<a class="breakWord pointer" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</a>
-				</td>
-				<td class="untightPadding">{formatDateString(a.assigned_date)}</td>
-				{#if a.due_time != ""}
-					<td class="untightPadding">{formatDateString(a.due_date)} <br /> {a.due_time}</td>
-				{:else}
-					<td class="untightPadding">{formatDateString(a.due_date)}</td>
-				{/if}
+			{#key unique[a.id]}
+				<tr
+					in:fly|global={{ duration: 300, x: -200 }}
+				>
+					<td class="breakWord padding">{classFromId(a.class_id).name}</td>
+					<td class="untightPadding">{a.type}</td>
+					<td>
+						<a class="breakWord pointer" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</a>
+					</td>
+					<td class="untightPadding">{formatDateString(a.assigned_date)}</td>
+					{#if a.due_time != ""}
+						<td class="untightPadding">{formatDateString(a.due_date)} <br /> {a.due_time}</td>
+					{:else}
+						<td class="untightPadding">{formatDateString(a.due_date)}</td>
+					{/if}
 
-				<td class="zeroWidth untightPadding">
-					<select value={a.status} on:input={(e) => statusAssignment(e, a.id)} style="background-color: {assignmentToColor(a)}">
-						<option value="Not Started">Not Started</option>
-						<option value="In Progress">In Progress</option>
-						<option value="Completed">Completed</option>
-					</select>
-				</td>
+					<td class="zeroWidth untightPadding">
+						<select value={a.status} on:input={(e) => statusAssignment(e, a.id)} style="background-color: {assignmentToColor(a)}">
+							<option value="Not Started">Not Started</option>
+							<option value="In Progress">In Progress</option>
+							<option value="Completed">Completed</option>
+						</select>
+					</td>
 
-				<td class="zeroWidth">
-					<button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
-				</td>
-			</tr>
+					<td class="zeroWidth">
+						<button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
+					</td>
+				</tr>
+			{/key}
 		{/each}
 	</table>
 
