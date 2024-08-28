@@ -86,8 +86,9 @@
 				a.assigned_date = a.assigned_date.slice(0, -1);
 			}
 		}
-		assignments = assignments.sort(sortAssignments);
 		assignments.forEach(convertToLocalTime);
+		assignments.sort(sortAssignments);
+		assignments = assignments;
 	}
 
 	function localDate() {
