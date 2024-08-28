@@ -22,14 +22,17 @@
 			user = data["user"];
 		});
 
-	$: {
+	function sortClasses(a, b) {
 		// Sort "other" to the bottom
 		// Otherwise alphabetically
-		classes = classes.sort((a, b) => {
-			if (a.name.toLowerCase() === "other") return 1;
-			if (b.name.toLowerCase() === "other") return -1;
-			return a.name.localeCompare(b.name);
-		});
+		if (a.name === b.name) return 0;
+		if (a.name.toLowerCase() === "other") return 1;
+		if (b.name.toLowerCase() === "other") return -1;
+		return a.name.localeCompare(b.name);
+	}
+
+	$: {
+		classes = classes.sort(sortClasses);
 	}
 	$: {
 		classFilter = classFilter.sort((a, b) => classFromId(a).name.localeCompare(classFromId(b).name));
@@ -50,9 +53,8 @@
 			// Then by class
 			const class_a = classes.find((c) => c.id === a.class_id);
 			const class_b = classes.find((c) => c.id === b.class_id);
-
-			if (class_a.name < class_b.name) return -1;
-			if (class_a.name > class_b.name) return 1;
+			const classSort = sortClasses(class_a, class_b);
+			if (classSort !== 0) return classSort;
 
 			// Then by type
 			const type_weight = {
