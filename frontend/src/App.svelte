@@ -50,11 +50,14 @@
 			if (a.due_time < b.due_time) return -1;
 			if (a.due_time > b.due_time) return 1;
 
-			// Then by class
-			const classA = classes.find((c) => c.id === a.class_id);
-			const classB = classes.find((c) => c.id === b.class_id);
-			const classSort = sortClasses(classA, classB);
-			if (classSort !== 0) return classSort;
+			// Then by status
+			const statusSeight = {
+				"Completed":   1,
+				"In Progress": 0,
+				"Not Started": 0,
+			};
+			if (statusSeight[a.status] < statusSeight[b.status]) return -1;
+			if (statusSeight[a.status] > statusSeight[b.status]) return 1;
 
 			// Then by type
 			const typeWeight = {
@@ -68,14 +71,11 @@
 			if (typeWeight[a.type] < typeWeight[b.type]) return -1;
 			if (typeWeight[a.type] > typeWeight[b.type]) return 1;
 
-			// Then by status
-			const statusSeight = {
-				"Completed":   2,
-				"In Progress": 1,
-				"Not Started": 0,
-			};
-			if (statusSeight[a.status] < statusSeight[b.status]) return -1;
-			if (statusSeight[a.status] > statusSeight[b.status]) return 1;
+			// Then by class
+			const classA = classes.find((c) => c.id === a.class_id);
+			const classB = classes.find((c) => c.id === b.class_id);
+			const classSort = sortClasses(classA, classB);
+			if (classSort !== 0) return classSort;
 
 			// lastly by name
 			return a.name.localeCompare(b.name);
