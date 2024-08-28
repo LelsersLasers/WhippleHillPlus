@@ -587,7 +587,7 @@ select:active {
 	<table>
 		<tr>
 			<th class="classWidth">Class</th>
-			<th class="zeroWidth">Type</th>
+			<th class="zeroWidth untightPadding">Type</th>
 			<th>Name</th>
 			<th class="zeroWidth untightPadding">Assigned</th>
 			<th class="zeroWidth">Due</th>
