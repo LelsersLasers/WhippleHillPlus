@@ -51,13 +51,13 @@
 			if (a.due_time > b.due_time) return 1;
 
 			// Then by class
-			const class_a = classes.find((c) => c.id === a.class_id);
-			const class_b = classes.find((c) => c.id === b.class_id);
-			const classSort = sortClasses(class_a, class_b);
+			const classA = classes.find((c) => c.id === a.class_id);
+			const classB = classes.find((c) => c.id === b.class_id);
+			const classSort = sortClasses(classA, classB);
 			if (classSort !== 0) return classSort;
 
 			// Then by type
-			const type_weight = {
+			const typeWeight = {
 				"Other":    5,
 				"Homework": 4,
 				"Project":  3,
@@ -65,17 +65,17 @@
 				"Quiz":     1,
 				"Test":     0,
 			};
-			if (type_weight[a.type] < type_weight[b.type]) return -1;
-			if (type_weight[a.type] > type_weight[b.type]) return 1;
+			if (typeWeight[a.type] < typeWeight[b.type]) return -1;
+			if (typeWeight[a.type] > typeWeight[b.type]) return 1;
 
 			// Then by status
-			const status_weight = {
+			const statusSeight = {
 				"Completed":   2,
 				"In Progress": 1,
 				"Not Started": 0,
 			};
-			if (status_weight[a.status] < status_weight[b.status]) return -1;
-			if (status_weight[a.status] > status_weight[b.status]) return 1;
+			if (statusSeight[a.status] < statusSeight[b.status]) return -1;
+			if (statusSeight[a.status] > statusSeight[b.status]) return 1;
 
 			// lastly by name
 			return a.name.localeCompare(b.name);
@@ -168,17 +168,17 @@
 		// due date is in the past and status is not completed
 		if (a.status == "Completed") return false;
 
-		const due_date = new Date(a.due_date);
+		const dueDate = new Date(a.due_date);
 		if (a.due_time != "") {
 			const todayWithTime = new Date();
 
-			const due_time = a.due_time.split(":");
-			due_date.setHours(due_time[0]);
-			due_date.setMinutes(due_time[1]);
+			const dueTime = a.due_time.split(":");
+			dueDate.setHours(dueTime[0]);
+			dueDate.setMinutes(dueTime[1]);
 
-			return due_date < todayWithTime;
+			return dueDate < todayWithTime;
 		} else {
-			return due_date < today;
+			return dueDate < today;
 		}
 	}
 
@@ -205,24 +205,24 @@
 			shownAssignments = assignments;
 		} else if (dateFilter == "week") {
 			shownAssignments = assignments.filter((a) => {
-				const due_date = new Date(a.due_date);
-				const assigned_date = new Date(a.assigned_date);
-				const due_date_in_range = due_date >= new Date(dateWeekStart) && due_date <= new Date(dateWeekEnd);
-				const assigned_date_in_range = assigned_date >= new Date(dateWeekStart) && assigned_date <= new Date(dateWeekEnd);
-				return (classFilterCheck(a) && statusFilterCheck(a) && (due_date_in_range || assigned_date_in_range)) || missingCheck(a);
+				const dueDate = new Date(a.due_date);
+				const assignedDate = new Date(a.assigned_date);
+				const dueDateInRange = dueDate >= new Date(dateWeekStart) && dueDate <= new Date(dateWeekEnd);
+				const assignedDateInRange = assignedDate >= new Date(dateWeekStart) && assignedDate <= new Date(dateWeekEnd);
+				return (classFilterCheck(a) && statusFilterCheck(a) && (dueDateInRange || assignedDateInRange)) || missingCheck(a);
 			});
 		} else if (dateFilter == "future") {
 			shownAssignments = assignments.filter((a) => {
-				const due_date = new Date(a.due_date);
-				return (classFilterCheck(a) && statusFilterCheck(a) && due_date >= today) || missingCheck(a);
+				const dueDate = new Date(a.due_date);
+				return (classFilterCheck(a) && statusFilterCheck(a) && dueDate >= today) || missingCheck(a);
 			});
 		} else if (dateFilter == "range") {
 			shownAssignments = assignments.filter((a) => {
-				const due_date = new Date(a.due_date);
-				const assigned_date = new Date(a.assigned_date);
-				const due_date_in_range = due_date >= new Date(dateStart) && due_date <= new Date(dateEnd);
-				const assigned_date_in_range = assigned_date >= new Date(dateStart) && assigned_date <= new Date(dateEnd);
-				return (classFilterCheck(a) && statusFilterCheck(a) && (due_date_in_range || assigned_date_in_range)) || missingCheck(a);
+				const dueDate = new Date(a.due_date);
+				const assignedDate = new Date(a.assigned_date);
+				const dueDateInRange = dueDate >= new Date(dateStart) && dueDate <= new Date(dateEnd);
+				const assignedDateInRange = assignedDate >= new Date(dateStart) && assignedDate <= new Date(dateEnd);
+				return (classFilterCheck(a) && statusFilterCheck(a) && (dueDateInRange || assignedDateInRange)) || missingCheck(a);
 			});
 		}
 	}
