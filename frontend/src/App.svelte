@@ -1,5 +1,6 @@
 <script>
 	import Modal from "./Modal.svelte";
+	import { fly } from "svelte/transition"; 
 
 	export let data;
 	export let api;
@@ -567,7 +568,9 @@ select:active {
 			<th class="zeroWidth"></th>
 		</tr>
 		{#each classes as c (c.id)}
-			<tr>
+			<tr
+				in:fly|global={{ duration: 300, x: -200 }}
+			>
 				<td class="breakWord">{c.name}</td>
 				<td class="zeroWidth">
 					<button type="button" on:click={() => updateClassButton(c.id)}>Edit</button>
@@ -597,7 +600,9 @@ select:active {
 			<th class="zeroWidth"></th>
 		</tr>
 		{#each shownAssignments as a (a.id)}
-			<tr>
+			<tr
+				in:fly|global={{ duration: 300, x: -200 }}
+			>
 				<td class="breakWord padding">{classFromId(a.class_id).name}</td>
 				<td class="untightPadding">{a.type}</td>
 				<td>
