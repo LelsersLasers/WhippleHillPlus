@@ -158,6 +158,7 @@
 
 	let showDateFilterModal = false;
 	let dateFilter = "future";
+	let rangeIncludesAssigned = false;
 
 	let showClassFilterModal = false;
 
@@ -216,6 +217,12 @@
 		function statusFilterCheck(a) {
 			return statusFilter.includes(a.status);
 		}
+		function datesOverlap(start1, end1, start2, end2) {
+			return start1 <= end2 && end1 >= start2;
+		}
+
+		const start1 = new Date(dateWeekStart);
+		const end1 = new Date(dateWeekEnd);
 
 		if (dateFilter == "all") {
 			shownAssignments = assignments;
@@ -223,9 +230,13 @@
 			shownAssignments = assignments.filter((a) => {
 				const dueDate = new Date(a.due_date);
 				const assignedDate = new Date(a.assigned_date);
-				const dueDateInRange = dueDate >= new Date(dateWeekStart) && dueDate <= new Date(dateWeekEnd);
-				const assignedDateInRange = assignedDate >= new Date(dateWeekStart) && assignedDate <= new Date(dateWeekEnd);
-				return (classFilterCheck(a) && statusFilterCheck(a) && (dueDateInRange || assignedDateInRange)) || missingCheck(a);
+				if (rangeIncludesAssigned) {
+					const overlaps = datesOverlap(start1, end1, assignedDate, dueDate);
+					return (classFilterCheck(a) && statusFilterCheck(a) && overlaps) || missingCheck(a);
+				} else {
+					const dueDateInRange = dueDate >= new Date(dateWeekStart) && dueDate <= new Date(dateWeekEnd);
+					return (classFilterCheck(a) && statusFilterCheck(a) && dueDateInRange) || missingCheck(a);
+				}
 			});
 		} else if (dateFilter == "future") {
 			shownAssignments = assignments.filter((a) => {
@@ -236,9 +247,13 @@
 			shownAssignments = assignments.filter((a) => {
 				const dueDate = new Date(a.due_date);
 				const assignedDate = new Date(a.assigned_date);
-				const dueDateInRange = dueDate >= new Date(dateStart) && dueDate <= new Date(dateEnd);
-				const assignedDateInRange = assignedDate >= new Date(dateStart) && assignedDate <= new Date(dateEnd);
-				return (classFilterCheck(a) && statusFilterCheck(a) && (dueDateInRange || assignedDateInRange)) || missingCheck(a);
+				if (rangeIncludesAssigned) {
+					const overlaps = datesOverlap(new Date(dateStart), new Date(dateEnd), assignedDate, dueDate);
+					return (classFilterCheck(a) && statusFilterCheck(a) && overlaps) || missingCheck(a);
+				} else {
+					const dueDateInRange = dueDate >= new Date(dateStart) && dueDate <= new Date(dateEnd);
+					return (classFilterCheck(a) && statusFilterCheck(a) && dueDateInRange) || missingCheck(a);
+				}
 			});
 		}
 	}
@@ -889,6 +904,13 @@ button:disabled {
 		<input type="date" id="dateStart" bind:value={dateStart}>
 		<label for="dateEnd">End Date:</label>
 		<input type="date" id="dateEnd" bind:value={dateEnd}>
+	{/if}
+
+	{#if dateFilter == "range" || dateFilter == "week"}
+		<label for="rangeIncludesAssigned">
+			<input type="checkbox" id="rangeIncludesAssigned" bind:checked={rangeIncludesAssigned}>
+			Include Assigned Dates
+		</label>
 	{/if}
 </Modal>
 
