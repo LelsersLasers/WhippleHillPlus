@@ -147,6 +147,7 @@
 
 	let showAssignmentDetailsModal = false;
 	let assignmentDetailsModalName = "";
+	let assignmentDetailsModalId = "";
 	let assignmentDetailsModalDescription = "";
 	let assignmentDetailsModalAssignedDate = "";
 	let assignmentDetailsModalDueDate = "";
@@ -408,6 +409,7 @@
 	function assignmentDetailsButton(id) {
 		const a = assignments.find((a) => a.id === id);
 		assignmentDetailsModalName = a.name;
+		assignmentDetailsModalId = a.id;
 		assignmentDetailsModalDescription = a.description;
 		assignmentDetailsModalAssignedDate = a.assigned_date;
 		assignmentDetailsModalDueDate = a.due_date;
@@ -496,6 +498,15 @@
 				updateAssignmentModalClassId = "";
 				showUpdateAssignmentModal = false;
 				updateAssignmentModalButton = true;
+
+				assignmentDetailsModalName = data.name;
+				assignmentDetailsModalDescription = data.description;
+				assignmentDetailsModalAssignedDate = data.assigned_date;
+				assignmentDetailsModalDueDate = data.due_date;
+				assignmentDetailsModalDueTime = data.due_time;
+				assignmentDetailsModalStatus = data.status;
+				assignmentDetailsModalType = data.type;
+				assignmentDetailsModalClassId = data.class_id;
 			})
 	}
 
@@ -846,6 +857,7 @@ button:disabled {
 	<p>Status: {assignmentDetailsModalStatus}</p>
 	<p>Type: {assignmentDetailsModalType}</p>
 	<p>Class: {classFromId(assignmentDetailsModalClassId)?.name}</p>
+	<button type="button" on:click={() => updateAssignmentButton(assignmentDetailsModalId)}>Edit</button>	
 </Modal>
 
 
