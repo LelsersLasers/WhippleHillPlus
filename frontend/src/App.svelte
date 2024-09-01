@@ -114,19 +114,23 @@
 
 	
 	let showCreateClassModal = false;
+	let createClassModalButton = true;
 
 	let showUpdateClassModal = false;
 	let updateClassModalName = "";
 	let updateClassModalId = "";
+	let updateClassModalButton = true;
 
 	let showDeleteClassModal = false;
 	let deleteClassModalName = "";
 	let deleteClassModalId = "";
 	let deleteClassModalTimer = 15;
 	let deleteClassModalTimerInterval = null;
+	let deleteClassModalButton = true;
 
 
 	let showCreateAssignmentModal = false;
+	let createAssignmentModalButton = true;
 
 	let showUpdateAssignmentModal = false;
 	let updateAssignmentModalName = "";
@@ -138,6 +142,8 @@
 	let updateAssignmentModalType = "";
 	let updateAssignmentModalClassId = "";
 	let updateAssignmentModalId = "";
+	let updateAssignmentModalButton = true;
+	let updateAssignmentModalDeleteButton = true;
 
 	let showAssignmentDetailsModal = false;
 	let assignmentDetailsModalName = "";
@@ -271,6 +277,8 @@
 		const data = {
 			'id': id,
 		}
+		deleteClassModalButton = false;
+
 		fetch(`${api}/delete_class`, {
 			method: "POST",
 			headers: {
@@ -287,6 +295,7 @@
 				deleteClassModalId = "";
 				deleteClassModalTimer = 0;
 				showDeleteClassModal = false;
+				deleteClassModalButton = true;
 			})
 	}
 	function deleteModalButton(id) {
@@ -311,6 +320,7 @@
 	}
 	function createClass(e) {
 		const data = formDataWithoutReload(e);
+		createClassModalButton = false;
 		
 		fetch(`${api}/create_class`, {
 			method: "POST",
@@ -325,10 +335,12 @@
 				classFilter = [...classFilter, data.id];
 				document.getElementById("createClassModalName").value = "";
 				showCreateClassModal = false;
+				createClassModalButton = true;
 			})
 	}
 	function updateClass(e) {
 		const data = formDataWithoutReload(e);
+		updateClassModalButton = false;
 
 		fetch(`${api}/update_class`, {
 			method: "POST",
@@ -347,6 +359,7 @@
 				updateClassModalName = "";
 				updateClassModalId = "";
 				showUpdateClassModal = false;
+				updateClassModalButton = true;
 			})
 	}
 
@@ -354,6 +367,8 @@
 		const data = {
 			'id': id,
 		}
+		updateAssignmentModalDeleteButton = false;
+
 		fetch(`${api}/delete_assignment`, {
 			method: "POST",
 			headers: {
@@ -374,6 +389,7 @@
 				updateAssignmentModalType = "";
 				updateAssignmentModalClassId = "";
 				showUpdateAssignmentModal = false;
+				updateAssignmentModalDeleteButton = true;
 			})
 	}
 	function updateAssignmentButton(id) {
@@ -403,6 +419,7 @@
 	}
 	function createAssignment(e) {
 		const data = formDataWithoutReload(e);
+		createAssignmentModalButton = false;
 
 		fetch(`${api}/create_assignment`, {
 			method: "POST",
@@ -425,6 +442,7 @@
 				document.getElementById("createAssignmentModalType").value = "Homework";
 				// document.getElementById("createAssignmentModalClassId").value = "";
 				showCreateAssignmentModal = false;
+				createAssignmentModalButton = true;
 			})
 	};
 	function statusAssignment(e, id) {
@@ -451,6 +469,7 @@
 	}
 	function updateAssignment(e) {
 		const data = formDataWithoutReload(e);
+		updateAssignmentModalButton = false;
 
 		fetch(`${api}/update_assignment`, {
 			method: "POST",
@@ -476,6 +495,7 @@
 				updateAssignmentModalType = "";
 				updateAssignmentModalClassId = "";
 				showUpdateAssignmentModal = false;
+				updateAssignmentModalButton = true;
 			})
 	}
 
@@ -560,6 +580,22 @@ textarea {
 
 select:active {
 	background-color: revert !important;
+}
+
+button:disabled {
+	animation: bob 0.5s infinite ease-in-out;
+}
+
+@keyframes bob {
+	0% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-5px);
+	}
+	100% {
+		transform: translateY(0);
+	}
 }
 
 </style>
@@ -661,7 +697,7 @@ select:active {
 		<label for="name">Name:</label>
 		<input type="text" id="createClassModalName" name="name" required>
 		<input type="hidden" name="user_id" value={user.id}>
-		<button type="submit">Create</button>
+		<button type="submit" disabled={!createClassModalButton}>Create</button>
 	</form>
 </Modal>
 
@@ -671,7 +707,7 @@ select:active {
 		<label for="name">Name:</label>
 		<input type="text" id="updateClassModalName" name="name" bind:value={updateClassModalName} required>
 		<input type="hidden" name="id" bind:value={updateClassModalId}>
-		<button type="submit">Update</button>
+		<button type="submit" disabled={!updateClassModalButton}>Update</button>
 	</form>
 </Modal>
 
@@ -682,7 +718,7 @@ select:active {
 	{#if deleteClassModalTimer > 0}
 		<p>Wait {deleteClassModalTimer} seconds before deleting.</p>
 	{:else}
-		<button type="button" on:click={() => deleteClassButton(deleteClassModalId)}>Yes</button>
+		<button type="button" on:click={() => deleteClassButton(deleteClassModalId)} disabled={!deleteClassModalButton}>Yes</button>
 	{/if}
 </Modal>
 
@@ -736,7 +772,7 @@ select:active {
 		</select>
 
 		<br />
-		<button type="submit">Create</button>
+		<button type="submit" disabled={!createAssignmentModalButton}>Create</button>
 	</form>
 </Modal>
 
@@ -791,8 +827,8 @@ select:active {
 		<input type="hidden" name="id" value={updateAssignmentModalId}>
 
 		<br />
-		<button type="submit">Update</button>
-		<button type="button" on:click={() => deleteAssignmentButton(updateAssignmentModalId)}>Delete</button>
+		<button type="submit" disabled={!updateAssignmentModalButton}>Update</button>
+		<button type="button" on:click={() => deleteAssignmentButton(updateAssignmentModalId)} disabled={!updateAssignmentModalDeleteButton}>Delete</button>
 	</form>
 </Modal>
 
