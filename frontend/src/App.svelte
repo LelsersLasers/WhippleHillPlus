@@ -922,6 +922,9 @@ button:disabled {
 			{c.name}
 		</label>
 	{/each}
+
+	<button type="button" on:click={() => classFilter = classes.map((c) => c.id)}>Select All</button>
+	<button type="button" on:click={() => classFilter = []}>Select None</button>
 </Modal>
 
 <Modal bind:showModal={showStatusFilter}>
