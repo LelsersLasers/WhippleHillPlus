@@ -16,20 +16,68 @@
 
 	let unique = {};
 
-	data
-		.then((res) => res.json())
-		.then((data) => {
-			assignments = data["assignments"];
+	// data
+	// 	.then((res) => res.json())
+	// 	.then((data) => {
+	// 		// assignments = data["assignments"];
 
-			classes = data["classes"];
-			classFilter = classes.map((c) => c.id);
-			user = data["user"];
+	// 		// classes = data["classes"];
+	// 		// classFilter = classes.map((c) => c.id);
+	// 		// user = data["user"];
 
-			unique = {};
-			assignments.forEach((a) => {
-				unique[a.id] = 0;
+	// 		// unique = {};
+	// 		// assignments.forEach((a) => {
+	// 		// 	unique[a.id] = 0;
+	// 		// });
+	// 		process_main_data(data);
+	// 	});
+	process_main_data(data);
+
+	function process_main_data(f) {
+		f
+			.then((res) => res.json())
+			.then((data) => {
+				let old = assignments;
+				assignments = data["assignments"];
+				classes = data["classes"];
+				classFilter = classes.map((c) => c.id);
+				user = data["user"];
+
+				assignments.forEach((a) => {
+					if (unique[a.id] === undefined) {
+						unique[a.id] = 0;
+					} else {
+						// if assigment has changed proc the key to replay the animation
+						convertToLocalTime(a);
+						const oldAssignment = old.find((o) => o.id === a.id);
+						if (!assigmentsAreEqual(a, oldAssignment)) {
+							unique[a.id] += 1;
+						}
+					}
+				});
 			});
-		});
+	}
+
+	function assigmentsAreEqual(a, b) {
+		return a.id === b.id
+			&& a.name === b.name
+			&& a.description === b.description
+			&& a.assigned_date === b.assigned_date
+			&& a.due_date === b.due_date
+			&& a.due_time === b.due_time
+			&& a.status === b.status
+			&& a.type === b.type
+			&& a.class_id === b.class_id;
+	}
+
+	function convertToLocalTime(a) {
+		if (a.due_date.endsWith("Z")) {
+			a.due_date = a.due_date.slice(0, -1);
+		}
+		if (a.assigned_date.endsWith("Z")) {
+			a.assigned_date = a.assigned_date.slice(0, -1);
+		}
+	}
 
 	function sortClasses(a, b) {
 		// Sort "other" to the bottom
@@ -89,14 +137,7 @@
 			// lastly by name
 			return a.name.localeCompare(b.name);
 		}
-		function convertToLocalTime(a) {
-			if (a.due_date.endsWith("Z")) {
-				a.due_date = a.due_date.slice(0, -1);
-			}
-			if (a.assigned_date.endsWith("Z")) {
-				a.assigned_date = a.assigned_date.slice(0, -1);
-			}
-		}
+		
 		assignments.forEach(convertToLocalTime);
 		assignments.sort(sortAssignments);
 		assignments = assignments;
@@ -534,6 +575,12 @@
 		document.getElementById("createAssignmentModalAssignedDate").valueAsDate = localDate();
 		document.getElementById("createAssignment").addEventListener("submit", createAssignment);
 		document.getElementById("updateAssignment").addEventListener("submit", updateAssignment);
+
+		document.addEventListener("visibilitychange", () => {
+			if (!document.hidden) {
+				process_main_data(fetch(`${api}/home_data`));
+			}
+		});
 	});
 </script>
 
