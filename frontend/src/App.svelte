@@ -79,6 +79,20 @@
 		}
 	}
 
+	function convertTimeTo12Hours(time) {
+		const [hours, minutes] = time.split(":");
+		const hour = parseInt(hours);
+		if (hour === 0) {
+			return `12:${minutes}am`;
+		} else if (hour < 12) {
+			return `${hour}:${minutes}am`;
+		} else if (hour === 12) {
+			return `12:${minutes}pm`;
+		} else {
+			return `${hour - 12}:${minutes}pm`;
+		}
+	}
+
 	function sortClasses(a, b) {
 		// Sort "other" to the bottom
 		// Otherwise alphabetically
@@ -734,7 +748,7 @@ button:disabled {
 					</td>
 					<td class="untightPadding">{formatDateString(a.assigned_date)}</td>
 					{#if a.due_time != ""}
-						<td class="untightPadding">{formatDateString(a.due_date)} <br /> {a.due_time}</td>
+						<td class="untightPadding">{formatDateString(a.due_date)} <br /> {convertTimeTo12Hours(a.due_time)}</td>
 					{:else}
 						<td class="untightPadding">{formatDateString(a.due_date)}</td>
 					{/if}
@@ -912,7 +926,7 @@ button:disabled {
 	<p>Assigned Date: {formatDateString(assignmentDetailsModalAssignedDate)}</p>
 
 	{#if assignmentDetailsModalDueTime != ""}
-		<p>Due Date: {formatDateString(assignmentDetailsModalDueDate)} - {assignmentDetailsModalDueTime}</p>
+		<p>Due Date: {formatDateString(assignmentDetailsModalDueDate)} - {convertTimeTo12Hours(assignmentDetailsModalDueTime)}</p>
 	{:else}
 		<p>Due Date: {formatDateString(assignmentDetailsModalDueDate)}</p>
 	{/if}
