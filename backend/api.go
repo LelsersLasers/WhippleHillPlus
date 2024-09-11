@@ -8,10 +8,10 @@ import (
 )
 
 func homePage(w http.ResponseWriter, r *http.Request) {
-	_, sessionID := isLoggedIn(r)
+	loggedIn, sessionID := isLoggedIn(r)
 	user, err := userFromUsername(sessionID)
 
-	if err != nil {
+	if !loggedIn || err != nil {
 		logout(&w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
