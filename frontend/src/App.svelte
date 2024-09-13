@@ -220,6 +220,9 @@
 	let showStatusFilter = false;
 	let statusFilter = ["Not Started", "In Progress", "Completed"];
 
+	let showTypeFilter = false;
+	let typeFilter = ["Homework", "Quiz", "Test", "Project", "Paper", "Other"];
+
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
 
@@ -272,6 +275,10 @@
 		function statusFilterCheck(a) {
 			return statusFilter.includes(a.status);
 		}
+		function typeFilterCheck(a) {
+			console.log(a.type, typeFilter);
+			return typeFilter.includes(a.type);
+		}
 		function datesOverlap(start1, end1, start2, end2) {
 			return start1 <= end2 && end1 >= start2;
 		}
@@ -287,16 +294,16 @@
 				const assignedDate = new Date(a.assigned_date);
 				if (rangeIncludesAssigned) {
 					const overlaps = datesOverlap(start1, end1, assignedDate, dueDate);
-					return (classFilterCheck(a) && statusFilterCheck(a) && overlaps) || missingCheck(a);
+					return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
 				} else {
 					const dueDateInRange = dueDate >= new Date(dateWeekStart) && dueDate <= new Date(dateWeekEnd);
-					return (classFilterCheck(a) && statusFilterCheck(a) && dueDateInRange) || missingCheck(a);
+					return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
 				}
 			});
 		} else if (dateFilter == "future") {
 			shownAssignments = assignments.filter((a) => {
 				const dueDate = new Date(a.due_date);
-				return (classFilterCheck(a) && statusFilterCheck(a) && dueDate >= today) || missingCheck(a);
+				return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDate >= today) || missingCheck(a);
 			});
 		} else if (dateFilter == "range") {
 			shownAssignments = assignments.filter((a) => {
@@ -304,10 +311,10 @@
 				const assignedDate = new Date(a.assigned_date);
 				if (rangeIncludesAssigned) {
 					const overlaps = datesOverlap(new Date(dateStart), new Date(dateEnd), assignedDate, dueDate);
-					return (classFilterCheck(a) && statusFilterCheck(a) && overlaps) || missingCheck(a);
+					return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
 				} else {
 					const dueDateInRange = dueDate >= new Date(dateStart) && dueDate <= new Date(dateEnd);
-					return (classFilterCheck(a) && statusFilterCheck(a) && dueDateInRange) || missingCheck(a);
+					return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
 				}
 			});
 		}
@@ -725,6 +732,7 @@ button:disabled {
 	<button type="button" on:click={() => showDateFilterModal = true}>Date Filter</button>
 	<button type="button" on:click={() => showClassFilterModal = true}>Class Filter</button>
 	<button type="button" on:click={() => showStatusFilter = true}>Status Filter</button>
+	<button type="button" on:click={() => showTypeFilter = true}>Type Filter</button>
 
 	<table>
 		<tr>
@@ -994,6 +1002,16 @@ button:disabled {
 		<label for={s}>
 			<input type="checkbox" id={s} value={s} bind:group={statusFilter}>
 			{s}
+		</label>
+	{/each}
+</Modal>
+
+<Modal bind:showModal={showTypeFilter}>
+	<h2>Type Filter</h2>
+	{#each ["Homework", "Quiz", "Test", "Project", "Paper", "Other"] as t}
+		<label for={t}>
+			<input type="checkbox" id={t} value={t} bind:group={typeFilter}>
+			{t}
 		</label>
 	{/each}
 </Modal>
