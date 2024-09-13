@@ -1014,4 +1014,7 @@ button:disabled {
 			{t}
 		</label>
 	{/each}
+
+	<button type="button" on:click={() => typeFilter = ["Homework", "Quiz", "Test", "Project", "Paper", "Other"]}>Select All</button>
+	<button type="button" on:click={() => typeFilter = []}>Select None</button>
 </Modal>
