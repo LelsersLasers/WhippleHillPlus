@@ -31,16 +31,17 @@
 	// 		// });
 	// 		process_main_data(data);
 	// 	});
-	process_main_data(data);
+	processMainData(data);
 
-	function process_main_data(f) {
+	function processMainData(f) {
 		f
 			.then((res) => res.json())
 			.then((data) => {
-				let old = assignments;
+				const oldAssignments = assignments;
+				const oldClasses = classes;
+
 				assignments = data["assignments"];
 				classes = data["classes"];
-				classFilter = classes.map((c) => c.id);
 				user = data["user"];
 
 				assignments.forEach((a) => {
@@ -49,10 +50,16 @@
 					} else {
 						// if assigment has changed proc the key to replay the animation
 						convertToLocalTime(a);
-						const oldAssignment = old.find((o) => o.id === a.id);
+						const oldAssignment = oldAssignments.find((o) => o.id === a.id);
 						if (!assigmentsAreEqual(a, oldAssignment)) {
 							unique[a.id] += 1;
 						}
+					}
+				});
+
+				classes.forEach((c) => {
+					if (!oldClasses.find((o) => o.id === c.id)) {
+						classFilter = [...classFilter, c.id];
 					}
 				});
 			});
@@ -599,7 +606,7 @@
 
 		document.addEventListener("visibilitychange", () => {
 			if (!document.hidden) {
-				process_main_data(fetch(`${api}/home_data`));
+				processMainData(fetch(`${api}/home_data`));
 			}
 		});
 	});
