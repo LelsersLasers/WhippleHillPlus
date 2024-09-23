@@ -16,21 +16,6 @@
 
 	let unique = {};
 
-	// data
-	// 	.then((res) => res.json())
-	// 	.then((data) => {
-	// 		// assignments = data["assignments"];
-
-	// 		// classes = data["classes"];
-	// 		// classFilter = classes.map((c) => c.id);
-	// 		// user = data["user"];
-
-	// 		// unique = {};
-	// 		// assignments.forEach((a) => {
-	// 		// 	unique[a.id] = 0;
-	// 		// });
-	// 		process_main_data(data);
-	// 	});
 	processMainData(data);
 
 	function processMainData(f) {
@@ -230,15 +215,7 @@
 	let showTypeFilter = false;
 	let typeFilter = ["Homework", "Quiz", "Test", "Project", "Paper", "Other"];
 
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
-
-	const pastSunday = new Date(today);
-	pastSunday.setDate(today.getDate() - today.getDay());
-	
-	const nextSunday = new Date(today);
-	if (7 - today.getDay() < 2) nextSunday.setDate(today.getDate() + (14 - today.getDay()));
-	else                        nextSunday.setDate(today.getDate() + (7  - today.getDay()));
+	let [today, pastSunday, nextSunday] = createDates();
 	
 	let dateWeekStart = formatDateObj(pastSunday);
 	let dateWeekEnd = formatDateObj(nextSunday);
@@ -325,6 +302,20 @@
 				}
 			});
 		}
+	}
+
+	function createDates() {
+		let today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		let pastSunday = new Date(today);
+		pastSunday.setDate(today.getDate() - today.getDay());
+		
+		let nextSunday = new Date(today);
+		if (7 - today.getDay() < 2) nextSunday.setDate(today.getDate() + (14 - today.getDay()));
+		else                        nextSunday.setDate(today.getDate() + (7  - today.getDay));
+
+		return [today, pastSunday, nextSunday];
 	}
 
 
@@ -607,6 +598,7 @@
 		document.addEventListener("visibilitychange", () => {
 			if (!document.hidden) {
 				processMainData(fetch(`${api}/home_data`));
+				[today, pastSunday, nextSunday] = createDates();
 			}
 		});
 	});
