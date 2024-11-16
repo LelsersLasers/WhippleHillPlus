@@ -743,10 +743,11 @@ button:disabled {
 			<th class="zeroWidth"></th>
 			<th class="zeroWidth"></th>
 		</tr>
-		{#each shownAssignments as a (a.id)}
+		{#each shownAssignments as a, i (a.id)}
 			{#key unique[a.id]}
 				<tr
 					in:fly|global={{ duration: 300, x: -200 }}
+					style="{shownAssignments[i + 1] && a.due_date != shownAssignments[i + 1].due_date ? 'border-bottom: 1px solid black;' : ''}"
 				>
 					<td class="breakWord padding">{classFromId(a.class_id).name}</td>
 					<td class="untightPadding">{a.type}</td>
