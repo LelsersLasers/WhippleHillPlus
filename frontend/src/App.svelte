@@ -294,7 +294,7 @@
 	}
 
 	$: {
-        function semsterCheck(a) {
+        function semesterCheck(a) {
             const c = classes.find((c) => c.id === a.class_id);
             return c.sem_id == semester;
         }
@@ -323,16 +323,16 @@
 				const assignedDate = new Date(a.assigned_date);
 				if (rangeIncludesAssigned) {
 					const overlaps = datesOverlap(start1, end1, assignedDate, dueDate);
-					return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
+					return (semesterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
 				} else {
 					const dueDateInRange = dueDate >= new Date(dateWeekStart) && dueDate <= new Date(dateWeekEnd);
-					return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
+					return (semesterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
 				}
 			});
 		} else if (dateFilter == "future") {
 			shownAssignments = assignments.filter((a) => {
 				const dueDate = new Date(a.due_date);
-				return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDate >= today) || missingCheck(a);
+				return (semesterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDate >= today) || missingCheck(a);
 			});
 		} else if (dateFilter == "range") {
 			shownAssignments = assignments.filter((a) => {
@@ -340,10 +340,10 @@
 				const assignedDate = new Date(a.assigned_date);
 				if (rangeIncludesAssigned) {
 					const overlaps = datesOverlap(new Date(dateStart), new Date(dateEnd), assignedDate, dueDate);
-					return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
+					return (semesterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
 				} else {
 					const dueDateInRange = dueDate >= new Date(dateStart) && dueDate <= new Date(dateEnd);
-					return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
+					return (semesterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
 				}
 			});
 		}
