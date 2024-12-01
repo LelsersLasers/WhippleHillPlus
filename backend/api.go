@@ -17,9 +17,11 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	classes, assignments := allClassesAndAssignments(user.ID)
+	// classes, assignments := allClassesAndAssignments(user.ID)
+	semesters, classes, assignments := allSemestersClassesAndAssignments(user.ID)
 	data := map[string]interface{}{
 		"user":        user,
+		"semesters":   semesters,
 		"classes":     classes,
 		"assignments": assignments,
 	}
@@ -155,7 +157,7 @@ func createAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data struct {
-		Name          string `json:"name"`
+		Name           string `json:"name"`
 		Description    string `json:"description"`
 		DueDate        string `json:"due_date"`
 		DueTime        string `json:"due_time"`
@@ -212,8 +214,8 @@ func updateAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data struct {
-		ID            string `json:"id"`
-		Name          string `json:"name"`
+		ID             string `json:"id"`
+		Name           string `json:"name"`
 		Description    string `json:"description"`
 		DueDate        string `json:"due_date"`
 		DueTime        string `json:"due_time"`
@@ -339,6 +341,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		Name   string `json:"name"`
 		UserID string `json:"user_id"`
+		SemID  string `json:"sem_id"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -350,7 +353,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	res, err := db.Exec("INSERT INTO classes (name, user_id) VALUES (?, ?)", data.Name, data.UserID)
+	res, err := db.Exec("INSERT INTO classes (name, user_id, semester_id) VALUES (?, ?, ?)", data.Name, data.UserID, data.SemID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert class", http.StatusInternalServerError)
 		return
@@ -372,7 +375,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	if rows.Next() {
-		rows.Scan(&class.ID, &class.Name, &class.UserID)
+		rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemID)
 	} else {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
@@ -388,8 +391,9 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data struct {
-		ID   string `json:"id"`
-		Name string `json:"name"`
+		ID    string `json:"id"`
+		Name  string `json:"name"`
+		SemID string `json:"sem_id"` // Added this line
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -401,7 +405,7 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	_, err = db.Exec("UPDATE classes SET name = ? WHERE id = ?", data.Name, data.ID)
+	_, err = db.Exec("UPDATE classes SET name = ?, semester_id = ? WHERE id = ?", data.Name, data.SemID, data.ID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to update class", http.StatusInternalServerError)
 		return
@@ -417,7 +421,7 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	if rows.Next() {
-		rows.Scan(&class.ID, &class.Name, &class.UserID)
+		rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemID)
 	} else {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
@@ -435,7 +439,7 @@ func deleteClass(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		ID int `json:"id"`
 	}
-	
+
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
@@ -449,6 +453,130 @@ func deleteClass(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Internal server error - failed to delete class", http.StatusInternalServerError)
+		return
+	}
+}
+
+func createSemester(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	var data struct {
+		Name      string `json:"name"`
+		UserID    string `json:"user_id"`
+		SortOrder string `json:"sort_order"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	res, err := db.Exec("INSERT INTO semesters (name, sort_order, user_id) VALUES (?, ?, ?)", data.Name, data.SortOrder, data.UserID)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to insert semester", http.StatusInternalServerError)
+		return
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		http.Error(w, "Internal server error - failed to get last id", http.StatusInternalServerError)
+		return
+	}
+
+	semester := Semester{}
+
+	rows, err := db.Query("SELECT * FROM semesters WHERE id = ?", id)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		rows.Scan(&semester.ID, &semester.Name, &semester.SortOrder, &semester.UserID)
+	} else {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(semester)
+}
+
+func updateSemester(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	var data struct {
+		ID        string `json:"id"`
+		Name      string `json:"name"`
+		SortOrder string `json:"sort_order"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	_, err = db.Exec("UPDATE semesters SET name = ?, sort_order = ? WHERE id = ?", data.Name, data.SortOrder, data.ID)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to update semester", http.StatusInternalServerError)
+		return
+	}
+
+	semester := Semester{}
+
+	rows, err := db.Query("SELECT * FROM semesters WHERE id = ?", data.ID)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		rows.Scan(&semester.ID, &semester.Name, &semester.SortOrder, &semester.UserID)
+	} else {
+		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(semester)
+}
+
+func deleteSemester(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	var data struct {
+		ID int `json:"id"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	_, err = db.Exec("DELETE FROM semesters WHERE id = ?", data.ID)
+
+	if err != nil {
+		http.Error(w, "Internal server error - failed to delete semester", http.StatusInternalServerError)
 		return
 	}
 }

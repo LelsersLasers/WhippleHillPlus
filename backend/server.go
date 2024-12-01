@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// const Port = 3003
 const Port = 8100
 const DbPath = "./database.db"
 
@@ -52,6 +54,10 @@ func main() {
 	handler.HandleFunc("/create_class", createClass)
 	handler.HandleFunc("/update_class", updateClass)
 	handler.HandleFunc("/delete_class", deleteClass)
+
+	handler.HandleFunc("/create_semester", createSemester)
+	handler.HandleFunc("/update_semester", updateSemester)
+	handler.HandleFunc("/delete_semester", deleteSemester)
 
 	middlewareHandler := loggingMiddleware(corsMiddleware(handler))
 
