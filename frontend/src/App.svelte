@@ -13,6 +13,7 @@
 	let user = {};
 
     let semester = -1;
+    let semesterValue = -1;
 
 	let shownAssignments = [];
     let shownClasses = [];
@@ -37,7 +38,13 @@
 
                 if (semester == -1) {
                     semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
-                    semester = semesters[0].id;
+                    if (semesters[0]) {
+                        semester = semesters[0].id;
+                        // document.getElementById("semesterSelector").value = semester;
+                        // console.log(document.getElementById("semesterSelector").value);
+                        semesterValue = semester;
+                        console.log(semester, semesterValue);
+                    }
                 }
 
 				assignments.forEach((a) => {
@@ -501,6 +508,9 @@
             .then((res) =>res.json())
             .then((data) => {
                 semesters = [...semesters, data];
+                if (semesters.length == 1) {
+                    semester = semesters[0].id;
+                }
                 document.getElementById("createSemesterModalName").value = "";
                 document.getElementById("createSemesterModalSortOrder").value = "1";
                 showCreateSemesterModal = false;
@@ -556,7 +566,7 @@
                 semesters = semesters.filter((s) => s.id !== id);
                 semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
 
-                if (semester == id) {
+                if (semester == id && semesters[0]) {
                     semester = semesters[0].id;
                 }
 
@@ -852,7 +862,7 @@ button[type="submit"] {
 <div id="holder">
 <h1>Welcome, {user.name}!</h1>
 
-<select id="semsterSelector" name="semsterSelector" on:change={updateSemesterValue}>
+<select id="semesterSelector" name="semesterSelector" on:change={updateSemesterValue} bind:value={semesterValue}>
     {#each semesters as s (s.id)}
         <option value={s.id}>{s.name}</option>
     {/each}
@@ -957,7 +967,7 @@ button[type="submit"] {
         <label for="name">Name:</label>
         <input type="text" id="createSemesterModalName" name="name" required>
         <label for="sort_order">Sort Order:</label>
-        <input type="number" id="createSemesterModalSortOrder" name="sort_order" value="1" required>
+        <input type="number" id="createSemesterModalSortOrder" name="sort_order" value="{Math.max(...semesters.map(s => s.sort_order)) + 1}" required>
         <input type="hidden" name="user_id" value={user.id}>
         
         <br />
