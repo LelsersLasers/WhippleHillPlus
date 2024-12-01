@@ -10,7 +10,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const Port = 3003
+// const Port = 3003
+const Port = 8100
 const DbPath = "./database.db"
 
 const SessionIdCookieName = "session_id"
