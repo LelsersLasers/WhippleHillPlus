@@ -91,29 +91,44 @@ func cookiesToFailContext(failContext map[string]string, w *http.ResponseWriter,
 	return failContext
 }
 
-func allClassesAndAssignments(user_id int) ([]Class, []Assignment) {
+func allSemestersClassesAndAssignments(user_id int) ([]Semester, []Class, []Assignment) {
+	semesters := []Semester{}
 	classes := []Class{}
 	assignments := []Assignment{}
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	rows, err := db.Query("SELECT * FROM classes WHERE user_id = ?", user_id)
+	rows, err := db.Query("SELECT * FROM semesters WHERE user_id = ?", user_id)
 	if err != nil {
-		return classes, assignments
+		return semesters, classes, assignments
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		class := Class{}
-		rows.Scan(&class.ID, &class.Name, &class.UserID)
-		classes = append(classes, class)
+		semester := Semester{}
+		rows.Scan(&semester.ID, &semester.Name, &semester.SortOrder, &semester.UserID)
+		semesters = append(semesters, semester)
+	}
+
+	for _, semester := range semesters {
+		rows, err := db.Query("SELECT * FROM classes WHERE semester_id = ?", semester.ID)
+		if err != nil {
+			return semesters, classes, assignments
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			class := Class{}
+			rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemID)
+			classes = append(classes, class)
+		}
 	}
 
 	for _, class := range classes {
 		rows, err := db.Query("SELECT * FROM assignments WHERE class_id = ?", class.ID)
 		if err != nil {
-			return classes, assignments
+			return semesters, classes, assignments
 		}
 		defer rows.Close()
 
@@ -124,5 +139,5 @@ func allClassesAndAssignments(user_id int) ([]Class, []Assignment) {
 		}
 	}
 
-	return classes, assignments
+	return semesters, classes, assignments
 }

@@ -9,9 +9,13 @@
 
 	let assignments = [];
 	let classes = [];
+    let semesters = [];
 	let user = {};
 
+    let semester = -1;
+
 	let shownAssignments = [];
+    let shownClasses = [];
 	let classFilter = [];
 
 	let unique = {};
@@ -22,12 +26,19 @@
 		f
 			.then((res) => res.json())
 			.then((data) => {
+                console.log(data);
 				const oldAssignments = assignments;
 				const oldClasses = classes;
 
 				assignments = data["assignments"];
 				classes = data["classes"];
+                semesters = data["semesters"];
 				user = data["user"];
+
+                if (semester == -1) {
+                    semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
+                    semester = semesters[0].id;
+                }
 
 				assignments.forEach((a) => {
 					if (unique[a.id] === undefined) {
@@ -62,6 +73,10 @@
 			&& a.class_id === b.class_id;
 	}
 
+    function updateSemesterValue(e) {
+        semester = e.target.value;
+    }
+
 	function convertToLocalTime(a) {
 		if (a.due_date.endsWith("Z")) {
 			a.due_date = a.due_date.slice(0, -1);
@@ -94,9 +109,16 @@
 		return a.name.localeCompare(b.name);
 	}
 
+    $: {
+        semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
+    }
+
 	$: {
 		classes = classes.sort(sortClasses);
 	}
+    $: {
+        shownClasses = classes.filter((c) => c.sem_id == semester);
+    }
 	$: {
 		classFilter = classFilter.sort((a, b) => classFromId(a).name.localeCompare(classFromId(b).name));
 	}
@@ -160,11 +182,30 @@
 	}
 
 	
+    let showCreateSemesterModal = false;
+    let createSemesterModalButton = true;
+
+    let showAllSemestersModal = false;
+
+    let showUpdateSemesterModal = false;
+    let updateSemesterModalName = "";
+    let updateSemesterModalSortOrder = "1";
+    let updateSemesterModalId = "";
+    let updateSemesterModalButton = true;
+
+    let showDeleteSemesterModal = false;
+    let deleteSemesterModalName = "";
+    let deleteSemesterModalId = "";
+    let deleteSemesterModalTimer = 15;
+    let deleteSemesterModalTimerInterval = null;
+    let deleteSemesterModalButton = true;
+
 	let showCreateClassModal = false;
 	let createClassModalButton = true;
 
 	let showUpdateClassModal = false;
 	let updateClassModalName = "";
+    let updateClassModalSemId = -1;
 	let updateClassModalId = "";
 	let updateClassModalButton = true;
 
@@ -253,6 +294,11 @@
 	}
 
 	$: {
+        function semsterCheck(a) {
+            const c = classes.find((c) => c.id === a.class_id);
+            return c.sem_id == semester;
+        }
+
 		function classFilterCheck(a) {
 			return classFilter.includes(a.class_id);
 		}
@@ -260,7 +306,6 @@
 			return statusFilter.includes(a.status);
 		}
 		function typeFilterCheck(a) {
-			console.log(a.type, typeFilter);
 			return typeFilter.includes(a.type);
 		}
 		function datesOverlap(start1, end1, start2, end2) {
@@ -271,23 +316,23 @@
 		const end1 = new Date(dateWeekEnd);
 
 		if (dateFilter == "all") {
-			shownAssignments = assignments;
+			shownAssignments = assignments.filter((a) => semesterCheck(a));
 		} else if (dateFilter == "week") {
 			shownAssignments = assignments.filter((a) => {
 				const dueDate = new Date(a.due_date);
 				const assignedDate = new Date(a.assigned_date);
 				if (rangeIncludesAssigned) {
 					const overlaps = datesOverlap(start1, end1, assignedDate, dueDate);
-					return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
+					return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
 				} else {
 					const dueDateInRange = dueDate >= new Date(dateWeekStart) && dueDate <= new Date(dateWeekEnd);
-					return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
+					return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
 				}
 			});
 		} else if (dateFilter == "future") {
 			shownAssignments = assignments.filter((a) => {
 				const dueDate = new Date(a.due_date);
-				return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDate >= today) || missingCheck(a);
+				return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDate >= today) || missingCheck(a);
 			});
 		} else if (dateFilter == "range") {
 			shownAssignments = assignments.filter((a) => {
@@ -295,10 +340,10 @@
 				const assignedDate = new Date(a.assigned_date);
 				if (rangeIncludesAssigned) {
 					const overlaps = datesOverlap(new Date(dateStart), new Date(dateEnd), assignedDate, dueDate);
-					return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
+					return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
 				} else {
 					const dueDateInRange = dueDate >= new Date(dateStart) && dueDate <= new Date(dateEnd);
-					return (classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
+					return (semsterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
 				}
 			});
 		}
@@ -391,6 +436,7 @@
 	function updateClassButton(id) {
 		const c = classes.find((c) => c.id === id);
 		updateClassModalName = c.name;
+        updateClassModalSemId = c.sem_id;
 		updateClassModalId = c.id;
 		showUpdateClassModal = true;
 	}
@@ -410,6 +456,7 @@
 				classes = [...classes, data];
 				classFilter = [...classFilter, data.id];
 				document.getElementById("createClassModalName").value = "";
+                // document.getElementById("createClassModalSemId").value = semester;
 				showCreateClassModal = false;
 				createClassModalButton = true;
 			})
@@ -433,11 +480,107 @@
 				});
 				assignments = assignments;
 				updateClassModalName = "";
+                updateClassModalSemId = -1;
 				updateClassModalId = "";
 				showUpdateClassModal = false;
 				updateClassModalButton = true;
 			})
 	}
+
+    function createSemester(e) {
+        const data = formDataWithoutReload(e);
+        createSemesterModalButton = false;
+
+        fetch(`${api}/create_semester`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+            .then((res) =>res.json())
+            .then((data) => {
+                semesters = [...semesters, data];
+                document.getElementById("createSemesterModalName").value = "";
+                document.getElementById("createSemesterModalSortOrder").value = "1";
+                showCreateSemesterModal = false;
+                createSemesterModalButton = true;
+            })
+    }
+    function updateSemester(e) {
+        const data = formDataWithoutReload(e);
+        updateSemesterModalButton = false;
+
+        console.log(data);
+
+        fetch(`${api}/update_semester`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                semesters = semesters.map((s) => {
+                    if (s.id === data.id) return data;
+                    else                  return s;
+                });
+                updateSemesterModalName = "";
+                updateSemesterModalSortOrder = "1";
+                showUpdateSemesterModal = false;
+                updateSemesterModalButton = true;
+            })
+    }
+    function updateSemesterButton(id) {
+        const s = semesters.find((s) => s.id === id);
+        updateSemesterModalName = s.name;
+        updateSemesterModalSortOrder = s.sort_order;
+        updateSemesterModalId = s.id;
+        showUpdateSemesterModal = true;
+    }
+    function deleteSemesterButton(id) {
+        const data = {
+            'id': id,
+        }
+        deleteSemesterModalButton = false;
+
+        fetch(`${api}/delete_semester`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+            .then((res) => {
+                semesters = semesters.filter((s) => s.id !== id);
+                semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
+
+                if (semester == id) {
+                    semester = semesters[0].id;
+                }
+
+                deleteSemesterModalName = "";
+                deleteSemesterModalId = "";
+                deleteSemesterModalTimer = 0;
+                showDeleteSemesterModal = false;
+                deleteSemesterModalButton = true;
+            })
+    }
+    function deleteModalButtonSemester(id) {
+        const s = semesters.find((s) => s.id === id);
+        deleteSemesterModalName = s.name;
+        deleteSemesterModalId = s.id;
+        deleteSemesterModalTimer = 15;
+        if (deleteSemesterModalTimerInterval) clearInterval(deleteSemesterModalTimerInterval);
+        deleteSemesterModalTimerInterval = setInterval(() => {
+            deleteSemesterModalTimer -= 1;
+            if (deleteSemesterModalTimer <= 0) {
+                clearInterval(deleteSemesterModalTimerInterval);
+            }
+        }, 1000);
+        showDeleteSemesterModal = true;
+    }
 
 	function deleteAssignmentButton(id) {
 		const data = {
@@ -591,6 +734,9 @@
 		document.getElementById("createClass").addEventListener("submit", createClass);
 		document.getElementById("updateClass").addEventListener("submit", updateClass);
 
+        document.getElementById("createSemester").addEventListener("submit", createSemester);
+        document.getElementById("updateSemester").addEventListener("submit", updateSemester);
+
 		document.getElementById("createAssignmentModalAssignedDate").valueAsDate = localDate();
 		document.getElementById("createAssignment").addEventListener("submit", createAssignment);
 		document.getElementById("updateAssignment").addEventListener("submit", updateAssignment);
@@ -606,6 +752,10 @@
 
 
 <style>
+
+#logout {
+    float: right;
+}
 
 #holder {
 	width: 100%;
@@ -679,6 +829,10 @@ button:disabled {
 	animation: bob 0.5s infinite ease-in-out;
 }
 
+button[type="submit"] {
+    font-weight: 500;
+}
+
 @keyframes bob {
 	0% {
 		transform: translateY(0);
@@ -697,12 +851,21 @@ button:disabled {
 
 <div id="holder">
 <h1>Welcome, {user.name}!</h1>
-<button type="button" on:click={() => window.location.href = "/logout_user"}>Logout</button>
+
+<select id="semsterSelector" name="semsterSelector" on:change={updateSemesterValue}>
+    {#each semesters as s (s.id)}
+        <option value={s.id}>{s.name}</option>
+    {/each}
+</select>
+
+<button id="logout" type="button" on:click={() => window.location.href = "/logout_user"}>Logout</button>
 
 {#if page == "classes"}
 	<h2>Your Classes</h2>
 	<button type="button" on:click={() => page = "assignments"}>View Assignments</button>
-	<button type="button" on:click={() => showCreateClassModal = true}>Create Class</button>
+	<button type="button" on:click={() => { showCreateClassModal = true; document.getElementById("createClassModalSemId").value = semester; }}>Create Class</button>
+    <button type="button" on:click={() => showCreateSemesterModal = true}>Create Semester</button>
+    <button type="button" on:click={() => showAllSemestersModal = true}>All Semesters</button>
 
 	<table>
 		<tr>
@@ -710,7 +873,7 @@ button:disabled {
 			<th class="zeroWidth"></th>
 			<th class="zeroWidth"></th>
 		</tr>
-		{#each classes as c (c.id)}
+		{#each shownClasses as c (c.id)}
 			<tr
 				in:fly|global={{ duration: 300, x: -200 }}
 			>
@@ -788,14 +951,84 @@ button:disabled {
 </div>
 
 
+<Modal bind:showModal={showCreateSemesterModal}>
+	<h2>Create Semester</h2>
+	<form id="createSemester">
+        <label for="name">Name:</label>
+        <input type="text" id="createSemesterModalName" name="name" required>
+        <label for="sort_order">Sort Order:</label>
+        <input type="number" id="createSemesterModalSortOrder" name="sort_order" value="1" required>
+        <input type="hidden" name="user_id" value={user.id}>
+        
+        <br />
+        <button type="submit" disabled={!createSemesterModalButton}>Create</button>
+    </form>
+</Modal>
+
+<Modal bind:showModal={showAllSemestersModal}>
+    <h2>All Semesters</h2>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th class="zeroWidth"></th>
+            <th class="zeroWidth"></th>
+        </tr>
+        {#each semesters as s (s.id)}
+            <tr
+                in:fly|global={{ duration: 300, x: -200 }}
+            >
+                <td class="breakWord">{s.name}</td>
+                <td class="zeroWidth">
+                    <button type="button" on:click={() => updateSemesterButton(s.id)}>Edit</button>
+                </td>
+                <td class="zeroWidth">
+                    <button type="button" on:click={() => deleteModalButtonSemester(s.id)}>Delete</button>
+                </td>
+            </tr>
+        {/each}
+    </table>
+</Modal>
+
+<Modal bind:showModal={showUpdateSemesterModal}>
+    <h2>Update Semester</h2>
+    <form id="updateSemester">
+        <label for="name">Name:</label>
+        <input type="text" id="updateSemesterModalName" name="name" bind:value={updateSemesterModalName} required>
+        <label for="sort_order">Sort Order:</label>
+        <input type="number" id="updateSemesterModalSortOrder" name="sort_order" bind:value={updateSemesterModalSortOrder} required>
+        <input type="hidden" name="id" bind:value={updateSemesterModalId}>
+        
+        <br />
+        <button type="submit" disabled={!updateSemesterModalButton}>Update</button>
+    </form>
+</Modal>
+
+<Modal bind:showModal={showDeleteSemesterModal}>
+    <h2>Delete Semester</h2>
+    <p>Are you sure you want to delete the semester "{deleteSemesterModalName}"?</p>
+    <p>Deleting the semester will delete all classes and assignments associated with it.</p>
+    {#if deleteSemesterModalTimer > 0}
+        <p>Wait {deleteSemesterModalTimer} seconds before deleting.</p>
+    {:else}
+        <button type="button" on:click={() => deleteSemesterButton(deleteSemesterModalId)} disabled={!deleteSemesterModalButton}>Yes</button>
+    {/if}
+</Modal>
+
 
 <Modal bind:showModal={showCreateClassModal}>
 	<h2>Create Class</h2>
 	<form id="createClass">
 		<label for="name">Name:</label>
 		<input type="text" id="createClassModalName" name="name" required>
+        <select id="createClassModalSemId" name="sem_id" required>
+            {#each semesters as s (s.id)}
+                <option value={s.id}>{s.name}</option>
+            {/each}
+		</select>
 		<input type="hidden" name="user_id" value={user.id}>
-		<button type="submit" disabled={!createClassModalButton}>Create</button>
+        
+        <br />
+        <button type="submit" disabled={!createClassModalButton}>Create</button>
 	</form>
 </Modal>
 
@@ -804,7 +1037,14 @@ button:disabled {
 	<form id="updateClass">
 		<label for="name">Name:</label>
 		<input type="text" id="updateClassModalName" name="name" bind:value={updateClassModalName} required>
+        <select id="createClassModalSemId" name="sem_id" bind:value={updateClassModalSemId} required>
+            {#each semesters as s (s.id)}
+                <option value={s.id}>{s.name}</option>
+            {/each}
+		</select>
 		<input type="hidden" name="id" bind:value={updateClassModalId}>
+        
+        <br />
 		<button type="submit" disabled={!updateClassModalButton}>Update</button>
 	</form>
 </Modal>
@@ -864,7 +1104,7 @@ button:disabled {
 
 		<label for="class_id">Class:</label>
 		<select id="createAssignmentModalClassId" name="class_id">
-			{#each classes as c (c.id)}
+			{#each shownClasses as c (c.id)}
 				<option value={c.id}>{c.name}</option>
 			{/each}
 		</select>
@@ -917,7 +1157,7 @@ button:disabled {
 
 		<label for="class_id">Class:</label>
 		<select id="updateAssignmentModalClassId" name="class_id" bind:value={updateAssignmentModalClassId}>
-			{#each classes as c (c.id)}
+			{#each shownClasses as c (c.id)}
 				<option value={c.id}>{c.name}</option>
 			{/each}
 		</select>
@@ -988,7 +1228,7 @@ button:disabled {
 
 <Modal bind:showModal={showClassFilterModal}>
 	<h2>Class Filter</h2>
-	{#each classes as c (c.id)}
+	{#each shownClasses as c (c.id)}
 		<label for={c.id}>
 			<input type="checkbox" id={c.id} value={c.id} bind:group={classFilter}>
 			{c.name}

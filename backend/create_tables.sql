@@ -1,15 +1,20 @@
 pragma foreign_keys = ON;
 
-
 -- - users
 -- 	- id (int, pk)
 -- 	- username (text)
 -- 	- name (text)
 -- 	- password_hash (text)
+-- - semesters
+--  - id (int, pk)
+--  - name (text)
+--  - sort_order (int)
+--  - user_id (int, fk)
 -- - classes
 -- 	- id (int, pk)
 -- 	- name (text)
 -- 	- user_id (int, fk)
+--  - semester_id (int, fk)
 -- - assignments
 -- 	- id (int, pk)
 -- 	- name (text)
@@ -28,14 +33,30 @@ CREATE TABLE IF NOT EXISTS users (
 	password_hash TEXT    NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS classes (
-	id      INTEGER PRIMARY KEY AUTOINCREMENT,
-	name    TEXT    NOT NULL,
+CREATE TABLE IF NOT EXISTS semesters (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT    NOT NULL,
+    sort_order INTEGER NOT NULL,
 
-	-- 1 user : many classes
-	user_id INTEGER NOT NULL,
-	FOREIGN KEY (user_id) REFERENCES users (id)
-		ON DELETE CASCADE
+    -- 1 user : many semesters
+    user_id    INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS classes (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL,
+    user_id     INTEGER NOT NULL,
+    semester_id INTEGER NOT NULL,
+
+    -- 1 user : many classes
+    FOREIGN KEY (user_id) REFERENCES users (id)
+        ON DELETE CASCADE,
+
+    -- 1 semester : many classes
+    FOREIGN KEY (semester_id) REFERENCES semesters (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS assignments (
@@ -49,7 +70,7 @@ CREATE TABLE IF NOT EXISTS assignments (
 	type          TEXT    CHECK (type IN ('Homework', 'Quiz', 'Test', 'Project', 'Paper', 'Other')) DEFAULT 'Homework',
 
 	-- 1 class : many assignments
-	class_id INTEGER NOT NULL,
+	class_id      INTEGER NOT NULL,
 	FOREIGN KEY (class_id) REFERENCES classes (id)
 		ON DELETE CASCADE
 );

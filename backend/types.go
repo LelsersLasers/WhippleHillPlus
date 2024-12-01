@@ -7,10 +7,18 @@ type User struct {
 	PasswordHash string `json:"password_hash"`
 }
 
+type Semester struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	SortOrder int    `json:"sort_order"`
+	UserID    int    `json:"user_id"`
+}
+
 type Class struct {
 	ID     int    `json:"id"`
 	Name   string `json:"name"`
 	UserID int    `json:"user_id"`
+	SemID  int    `json:"sem_id"`
 }
 
 type Assignment struct {
