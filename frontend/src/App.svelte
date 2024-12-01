@@ -752,6 +752,9 @@ button:disabled {
 					<td class="breakWord padding">{classFromId(a.class_id).name}</td>
 					<td class="untightPadding">{a.type}</td>
 					<td>
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<!-- svelte-ignore a11y-no-static-element-interactions -->
+						<!-- svelte-ignore a11y-missing-attribute -->
 						<a class="breakWord pointer" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</a>
 					</td>
 					<td class="untightPadding">{formatDateString(a.assigned_date)}</td>
