@@ -124,7 +124,7 @@
 		classes = classes.sort(sortClasses);
 	}
     $: {
-        shownClasses = classes.filter((c) => c.sem_id == semester);
+        shownClasses = classes.filter((c) => c.semester_id == semester);
     }
 	$: {
 		classFilter = classFilter.sort((a, b) => classFromId(a).name.localeCompare(classFromId(b).name));
@@ -207,7 +207,7 @@
 
 	let showUpdateClassModal = false;
 	let updateClassModalName = "";
-    let updateClassModalSemId = -1;
+    let updateClassModalSemesterID = -1;
 	let updateClassModalId = "";
 	let updateClassModalButton = true;
 
@@ -298,7 +298,7 @@
 	$: {
         function semesterCheck(a) {
             const c = classes.find((c) => c.id === a.class_id);
-            return c.sem_id == semester;
+            return c.semester_id == semester;
         }
 
 		function classFilterCheck(a) {
@@ -438,7 +438,7 @@
 	function updateClassButton(id) {
 		const c = classes.find((c) => c.id === id);
 		updateClassModalName = c.name;
-        updateClassModalSemId = c.sem_id;
+        updateClassModalSemesterID = c.semester_id;
 		updateClassModalId = c.id;
 		showUpdateClassModal = true;
 	}
@@ -458,7 +458,7 @@
 				classes = [...classes, data];
 				classFilter = [...classFilter, data.id];
 				document.getElementById("createClassModalName").value = "";
-                // document.getElementById("createClassModalSemId").value = semester;
+                // document.getElementById("createClassModalSemesterID").value = semester;
 				showCreateClassModal = false;
 				createClassModalButton = true;
 			})
@@ -482,7 +482,7 @@
 				});
 				assignments = assignments;
 				updateClassModalName = "";
-                updateClassModalSemId = -1;
+                updateClassModalSemesterID = -1;
 				updateClassModalId = "";
 				showUpdateClassModal = false;
 				updateClassModalButton = true;
@@ -569,7 +569,7 @@
     //         })
     // }
     function deleteModalButtonSemester(id) {
-		if (classes.find((c) => c.sem_id == id)) {
+		if (classes.find((c) => c.semester_id == id)) {
 			alert("Cannot delete a semester with classes in it.");
 			return;
 		}
@@ -882,7 +882,7 @@ button[type="submit"] {
 {#if page == "classes"}
 	<h2>Your Classes</h2>
 	<button type="button" on:click={() => page = "assignments"}>View Assignments</button>
-	<button type="button" on:click={() => { showCreateClassModal = true; document.getElementById("createClassModalSemId").value = semester; }}>Create Class</button>
+	<button type="button" on:click={() => { showCreateClassModal = true; document.getElementById("createClassModalSemesterID").value = semester; }}>Create Class</button>
     <button type="button" on:click={() => showAllSemestersModal = true}>Semesters</button>
 
 	<table>
@@ -1028,7 +1028,7 @@ button[type="submit"] {
 	<form id="createClass">
 		<label for="name">Name:</label>
 		<input type="text" id="createClassModalName" name="name" required>
-        <select id="createClassModalSemId" name="sem_id" required>
+        <select id="createClassModalSemesterID" name="semester_id" required>
             {#each semesters as s (s.id)}
                 <option value={s.id}>{s.name}</option>
             {/each}
@@ -1045,7 +1045,7 @@ button[type="submit"] {
 	<form id="updateClass">
 		<label for="name">Name:</label>
 		<input type="text" id="updateClassModalName" name="name" bind:value={updateClassModalName} required>
-        <select id="createClassModalSemId" name="sem_id" bind:value={updateClassModalSemId} required>
+        <select id="updateClassModalSemesterID" name="semester_id" bind:value={updateClassModalSemesterID} required>
             {#each semesters as s (s.id)}
                 <option value={s.id}>{s.name}</option>
             {/each}

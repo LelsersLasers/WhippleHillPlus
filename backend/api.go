@@ -341,7 +341,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		Name   string `json:"name"`
 		UserID string `json:"user_id"`
-		SemID  string `json:"sem_id"`
+		SemesterID  string `json:"semester_id"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -353,7 +353,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	res, err := db.Exec("INSERT INTO classes (name, user_id, semester_id) VALUES (?, ?, ?)", data.Name, data.UserID, data.SemID)
+	res, err := db.Exec("INSERT INTO classes (name, user_id, semester_id) VALUES (?, ?, ?)", data.Name, data.UserID, data.SemesterID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert class", http.StatusInternalServerError)
 		return
@@ -375,7 +375,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	if rows.Next() {
-		rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemID)
+		rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemesterID)
 	} else {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
@@ -393,7 +393,7 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		ID    string `json:"id"`
 		Name  string `json:"name"`
-		SemID string `json:"sem_id"` // Added this line
+		SemesterID string `json:"semester_id"` // Added this line
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -405,7 +405,7 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	_, err = db.Exec("UPDATE classes SET name = ?, semester_id = ? WHERE id = ?", data.Name, data.SemID, data.ID)
+	_, err = db.Exec("UPDATE classes SET name = ?, semester_id = ? WHERE id = ?", data.Name, data.SemesterID, data.ID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to update class", http.StatusInternalServerError)
 		return
@@ -421,7 +421,7 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	if rows.Next() {
-		rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemID)
+		rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemesterID)
 	} else {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return

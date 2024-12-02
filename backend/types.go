@@ -18,7 +18,7 @@ type Class struct {
 	ID     int    `json:"id"`
 	Name   string `json:"name"`
 	UserID int    `json:"user_id"`
-	SemID  int    `json:"sem_id"`
+	SemesterID  int    `json:"semester_id"`
 }
 
 type Assignment struct {

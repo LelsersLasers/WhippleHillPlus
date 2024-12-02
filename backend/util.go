@@ -120,7 +120,7 @@ func allSemestersClassesAndAssignments(user_id int) ([]Semester, []Class, []Assi
 
 		for rows.Next() {
 			class := Class{}
-			rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemID)
+			rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemesterID)
 			classes = append(classes, class)
 		}
 	}
