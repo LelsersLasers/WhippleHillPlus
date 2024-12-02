@@ -200,12 +200,7 @@
     let updateSemesterModalId = "";
     let updateSemesterModalButton = true;
 
-    let showDeleteSemesterModal = false;
-    let deleteSemesterModalName = "";
-    let deleteSemesterModalId = "";
-    let deleteSemesterModalTimer = 15;
-    let deleteSemesterModalTimerInterval = null;
-    let deleteSemesterModalButton = true;
+	let deleteSemesterModalButton = true;
 
 	let showCreateClassModal = false;
 	let createClassModalButton = true;
@@ -549,47 +544,57 @@
         updateSemesterModalId = s.id;
         showUpdateSemesterModal = true;
     }
-    function deleteSemesterButton(id) {
-        const data = {
-            'id': id,
-        }
-        deleteSemesterModalButton = false;
+    // function deleteSemesterButton(id) {
+    //     const data = {
+    //         'id': id,
+    //     }
+    //     deleteSemesterModalButton = false;
 
-        fetch(`${api}/delete_semester`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        })
-            .then((res) => {
-                semesters = semesters.filter((s) => s.id !== id);
-                semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
+    //     fetch(`${api}/delete_semester`, {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //         },
+    //         body: JSON.stringify(data),
+    //     })
+    //         .then((res) => {
+    //             semesters = semesters.filter((s) => s.id !== id);
+    //             semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
 
-                if (semester == id && semesters[0]) {
-                    semester = semesters[0].id;
-                }
+    //             if (semester == id && semesters[0]) {
+    //                 semester = semesters[0].id;
+    //             }
 
-                deleteSemesterModalName = "";
-                deleteSemesterModalId = "";
-                deleteSemesterModalTimer = 0;
-                showDeleteSemesterModal = false;
-                deleteSemesterModalButton = true;
-            })
-    }
+    //             deleteSemesterModalButton = true;
+    //         })
+    // }
     function deleteModalButtonSemester(id) {
-        const s = semesters.find((s) => s.id === id);
-        deleteSemesterModalName = s.name;
-        deleteSemesterModalId = s.id;
-        deleteSemesterModalTimer = 15;
-        if (deleteSemesterModalTimerInterval) clearInterval(deleteSemesterModalTimerInterval);
-        deleteSemesterModalTimerInterval = setInterval(() => {
-            deleteSemesterModalTimer -= 1;
-            if (deleteSemesterModalTimer <= 0) {
-                clearInterval(deleteSemesterModalTimerInterval);
-            }
-        }, 1000);
-        showDeleteSemesterModal = true;
+		if (classes.find((c) => c.sem_id == id)) {
+			alert("Cannot delete a semester with classes in it.");
+			return;
+		}
+
+		deleteSemesterModalButton = false;
+
+		const data = { 'id': id };
+		fetch(`${api}/delete_semester`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) => {
+				semesters = semesters.filter((s) => s.id !== id);
+				semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
+
+				if (semester == id && semesters[0]) {
+					semester = semesters[0].id;
+					semesterValue = semester;
+				}
+
+				deleteSemesterModalButton = true;
+			});
     }
 
 	function deleteAssignmentButton(id) {
@@ -992,7 +997,7 @@ button[type="submit"] {
                     <button type="button" on:click={() => updateSemesterButton(s.id)}>Edit</button>
                 </td>
                 <td class="zeroWidth">
-                    <button type="button" on:click={() => deleteModalButtonSemester(s.id)}>Delete</button>
+                    <button type="button" on:click={() => deleteModalButtonSemester(s.id)} disabled={!deleteSemesterModalButton}>Delete</button>
                 </td>
             </tr>
         {/each}
@@ -1011,17 +1016,6 @@ button[type="submit"] {
         <br />
         <button type="submit" disabled={!updateSemesterModalButton}>Update</button>
     </form>
-</Modal>
-
-<Modal bind:showModal={showDeleteSemesterModal}>
-    <h2>Delete Semester</h2>
-    <p>Are you sure you want to delete the semester "{deleteSemesterModalName}"?</p>
-    <p>Deleting the semester will delete all classes and assignments associated with it.</p>
-    {#if deleteSemesterModalTimer > 0}
-        <p>Wait {deleteSemesterModalTimer} seconds before deleting.</p>
-    {:else}
-        <button type="button" on:click={() => deleteSemesterButton(deleteSemesterModalId)} disabled={!deleteSemesterModalButton}>Yes</button>
-    {/if}
 </Modal>
 
 
