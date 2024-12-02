@@ -826,6 +826,10 @@ tr:nth-child(even) {
 	cursor: pointer;
 }
 
+#createSemesterButton {
+	margin-top: 12px;
+}
+
 
 input[type="text"] {
 	width: 100%;
@@ -845,7 +849,7 @@ button:disabled {
 }
 
 button[type="submit"] {
-    font-weight: 500;
+    font-weight: 600;
 }
 
 @keyframes bob {
@@ -879,8 +883,7 @@ button[type="submit"] {
 	<h2>Your Classes</h2>
 	<button type="button" on:click={() => page = "assignments"}>View Assignments</button>
 	<button type="button" on:click={() => { showCreateClassModal = true; document.getElementById("createClassModalSemId").value = semester; }}>Create Class</button>
-    <button type="button" on:click={() => showCreateSemesterModal = true}>Create Semester</button>
-    <button type="button" on:click={() => showAllSemestersModal = true}>All Semesters</button>
+    <button type="button" on:click={() => showAllSemestersModal = true}>Semesters</button>
 
 	<table>
 		<tr>
@@ -1002,6 +1005,7 @@ button[type="submit"] {
             </tr>
         {/each}
     </table>
+    <button id="createSemesterButton" type="button" on:click={() => showCreateSemesterModal = true}>Create Semester</button>
 </Modal>
 
 <Modal bind:showModal={showUpdateSemesterModal}>
