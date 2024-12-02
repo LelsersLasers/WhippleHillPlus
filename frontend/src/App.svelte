@@ -40,10 +40,7 @@
                     semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
                     if (semesters[0]) {
                         semester = semesters[0].id;
-                        // document.getElementById("semesterSelector").value = semester;
-                        // console.log(document.getElementById("semesterSelector").value);
                         semesterValue = semester;
-                        console.log(semester, semesterValue);
                     }
                 }
 
