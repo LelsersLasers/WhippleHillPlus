@@ -21,6 +21,8 @@ const SessionTimeout = 2 * 7 * 24 * time.Hour // 2 weeks
 const ContextFailCookieNameBase = "context_fail_"
 const ContextFailCookieTimeout = 5 * time.Second
 
+const CleanInterval = 24 * time.Hour // 1 day
+
 const SvelteDir = "./../frontend/public"
 
 var (
@@ -61,6 +63,8 @@ func main() {
 	handler.HandleFunc("/delete_semester", deleteSemester)
 
 	middlewareHandler := loggingMiddleware(corsMiddleware(handler))
+
+	go startSessionCleanup()
 
 	fmt.Printf("Server is running on port %d\n", Port)
 
