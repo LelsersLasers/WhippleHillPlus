@@ -18,7 +18,6 @@ pragma foreign_keys = ON;
 -- - classes
 -- 	- id (int, pk)
 -- 	- name (text)
--- 	- user_id (int, fk)
 --  - semester_id (int, fk)
 -- - assignments
 -- 	- id (int, pk)
@@ -63,12 +62,7 @@ CREATE TABLE IF NOT EXISTS semesters (
 CREATE TABLE IF NOT EXISTS classes (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     name        TEXT    NOT NULL,
-    user_id     INTEGER NOT NULL,
     semester_id INTEGER NOT NULL,
-
-    -- 1 user : many classes
-    FOREIGN KEY (user_id) REFERENCES users (id)
-        ON DELETE CASCADE,
 
     -- 1 semester : many classes
     FOREIGN KEY (semester_id) REFERENCES semesters (id)
