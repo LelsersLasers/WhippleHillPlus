@@ -8,8 +8,8 @@ import (
 )
 
 func homeData(w http.ResponseWriter, r *http.Request) {
-	loggedIn, sessionID := isLoggedIn(r)
-	user, err := userFromUsername(sessionID)
+	loggedIn, username := isLoggedIn(r)
+	user, err := userFromUsername(username)
 
 	if !loggedIn || err != nil {
 		logout(&w, r)

@@ -7,6 +7,13 @@ type User struct {
 	PasswordHash string `json:"password_hash"`
 }
 
+type Session struct {
+	ID         int    `json:"id"`
+	Token      string `json:"token"`
+	Expiration string `json:"expiration"`
+	UserID     int    `json:"user_id"`
+}
+
 type Semester struct {
 	ID        int    `json:"id"`
 	Name      string `json:"name"`
@@ -15,10 +22,10 @@ type Semester struct {
 }
 
 type Class struct {
-	ID     int    `json:"id"`
-	Name   string `json:"name"`
-	UserID int    `json:"user_id"`
-	SemesterID  int    `json:"semester_id"`
+	ID         int    `json:"id"`
+	Name       string `json:"name"`
+	UserID     int    `json:"user_id"`
+	SemesterID int    `json:"semester_id"`
 }
 
 type Assignment struct {

@@ -5,6 +5,11 @@ pragma foreign_keys = ON;
 -- 	- username (text)
 -- 	- name (text)
 -- 	- password_hash (text)
+-- - sessions
+-- 	- id (int, pk)
+-- 	- token (text)
+-- 	- expiration (text)
+-- 	- user_id (int, fk)
 -- - semesters
 --  - id (int, pk)
 --  - name (text)
@@ -31,6 +36,17 @@ CREATE TABLE IF NOT EXISTS users (
 	username      TEXT    NOT NULL UNIQUE,
 	name          TEXT    NOT NULL,
 	password_hash TEXT    NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+	id            INTEGER PRIMARY KEY AUTOINCREMENT,
+	token         TEXT    NOT NULL,
+    expiration    TEXT    NOT NULL, -- Unix timestamp
+
+    -- 1 user : many sessions
+    user_id       INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS semesters (
