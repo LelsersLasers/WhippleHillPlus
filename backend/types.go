@@ -24,7 +24,6 @@ type Semester struct {
 type Class struct {
 	ID         int    `json:"id"`
 	Name       string `json:"name"`
-	UserID     int    `json:"user_id"`
 	SemesterID int    `json:"semester_id"`
 }
 

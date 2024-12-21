@@ -979,7 +979,6 @@ button[type="submit"] {
         <input type="text" id="createSemesterModalName" name="name" required>
         <label for="sort_order">Sort Order:</label>
         <input type="number" id="createSemesterModalSortOrder" name="sort_order" value="{Math.max(...semesters.map(s => s.sort_order)) + 1}" required>
-        <input type="hidden" name="user_id" value={user.id}>
         
         <br />
         <button type="submit" disabled={!createSemesterModalButton}>Create</button>
