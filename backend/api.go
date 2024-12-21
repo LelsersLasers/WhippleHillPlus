@@ -339,9 +339,9 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data struct {
-		Name   string `json:"name"`
-		UserID string `json:"user_id"`
-		SemesterID  string `json:"semester_id"`
+		Name       string `json:"name"`
+		UserID     string `json:"user_id"`
+		SemesterID string `json:"semester_id"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -391,8 +391,8 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data struct {
-		ID    string `json:"id"`
-		Name  string `json:"name"`
+		ID         string `json:"id"`
+		Name       string `json:"name"`
 		SemesterID string `json:"semester_id"` // Added this line
 	}
 
