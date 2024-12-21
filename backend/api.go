@@ -2,17 +2,21 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 func homeData(w http.ResponseWriter, r *http.Request) {
-	loggedIn, sessionID := isLoggedIn(r)
-	user, err := userFromUsername(sessionID)
+	loggedIn, username := isLoggedIn(r)
+
+	dbMutex.Lock()
+	user, err := userFromUsername(username)
+	dbMutex.Unlock()
 
 	if !loggedIn || err != nil {
-		logout(&w, r)
+		logout(&w, r, false)
 		data := map[string]interface{}{
 			"error": "Not logged in",
 		}
@@ -55,8 +59,8 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 		"error_message": "",
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	rows, err := db.Query("SELECT password_hash FROM users WHERE username = ?", username)
 	if err != nil {
@@ -68,6 +72,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	if rows.Next() {
 		passwordHash := ""
 		rows.Scan(&passwordHash)
+		rows.Close()
 		if bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)) == nil {
 			login(&w, r, username)
 			return
@@ -80,7 +85,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func logoutUser(w http.ResponseWriter, r *http.Request) {
-	logout(&w, r)
+	logout(&w, r, true)
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {
@@ -122,8 +127,8 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	rows, err := db.Query("SELECT * FROM users WHERE username = ?", username)
 	if err != nil {
@@ -177,8 +182,8 @@ func createAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	res, err := db.Exec("INSERT INTO assignments (name, description, due_date, due_time, assigned_date, status, type, class_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", data.Name, data.Description, data.DueDate, data.DueTime, data.AssignedDate, data.Status, data.AssignmentType, data.ClassID)
 	if err != nil {
@@ -235,8 +240,8 @@ func updateAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	_, err = db.Exec("UPDATE assignments SET name = ?, description = ?, due_date = ?, due_time = ?, assigned_date = ?, status = ?, type = ?, class_id = ? WHERE id = ?", data.Name, data.Description, data.DueDate, data.DueTime, data.AssignedDate, data.Status, data.AssignmentType, data.ClassID, data.ID)
 
@@ -280,8 +285,8 @@ func deleteAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	_, err = db.Exec("DELETE FROM assignments WHERE id = ?", data.ID)
 
@@ -307,8 +312,8 @@ func statusAssignment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	_, err = db.Exec("UPDATE assignments SET status = ? WHERE id = ?", data.Status, data.ID)
 
@@ -354,8 +359,8 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	res, err := db.Exec("INSERT INTO classes (name, user_id, semester_id) VALUES (?, ?, ?)", data.Name, data.UserID, data.SemesterID)
 	if err != nil {
@@ -406,8 +411,8 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	_, err = db.Exec("UPDATE classes SET name = ?, semester_id = ? WHERE id = ?", data.Name, data.SemesterID, data.ID)
 	if err != nil {
@@ -450,8 +455,8 @@ func deleteClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	_, err = db.Exec("DELETE FROM classes WHERE id = ?", data.ID)
 
@@ -478,8 +483,8 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	res, err := db.Exec("INSERT INTO semesters (name, sort_order, user_id) VALUES (?, ?, ?)", data.Name, data.SortOrder, data.UserID)
 	if err != nil {
@@ -530,8 +535,8 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	_, err = db.Exec("UPDATE semesters SET name = ?, sort_order = ? WHERE id = ?", data.Name, data.SortOrder, data.ID)
 	if err != nil {
@@ -574,8 +579,8 @@ func deleteSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	_, err = db.Exec("DELETE FROM semesters WHERE id = ?", data.ID)
 
