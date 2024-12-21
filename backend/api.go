@@ -360,7 +360,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
-	res, err := db.Exec("INSERT INTO classes (name, semester_id) VALUES (?, ?, ?)", data.Name, data.SemesterID)
+	res, err := db.Exec("INSERT INTO classes (name, semester_id) VALUES (?, ?)", data.Name, data.SemesterID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert class", http.StatusInternalServerError)
 		return
