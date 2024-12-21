@@ -28,6 +28,12 @@
 			.then((res) => res.json())
 			.then((data) => {
                 console.log(data);
+
+                if (data["error"]) {
+                    window.location.href = "/login";
+                    return;
+                }
+
 				const oldAssignments = assignments;
 				const oldClasses = classes;
 

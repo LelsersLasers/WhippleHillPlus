@@ -13,7 +13,11 @@ func homeData(w http.ResponseWriter, r *http.Request) {
 
 	if !loggedIn || err != nil {
 		logout(&w, r)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		data := map[string]interface{}{
+			"error": "Not logged in",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(data)
 		return
 	}
 
