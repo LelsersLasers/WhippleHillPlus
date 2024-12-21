@@ -13,8 +13,6 @@ func userFromUsername(username string) (User, error) {
 
 	user := User{}
 
-	fmt.Println("username: ", username)
-
 	rows, err := db.Query("SELECT * FROM users WHERE username = ?", username)
 	if err != nil {
 		return user, err
@@ -32,10 +30,7 @@ func userFromUsername(username string) (User, error) {
 func isLoggedIn(r *http.Request) (bool, string) {
 	maybeDeleteInvalidSessions()
 
-	fmt.Println("isLoggedIn")
-
 	cookie, err := r.Cookie(SessionUsernameCookieName)
-	fmt.Println("err: ", err)
 	if err != nil {
 		return false, ""
 	}

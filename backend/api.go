@@ -11,11 +11,8 @@ import (
 func homeData(w http.ResponseWriter, r *http.Request) {
 	loggedIn, username := isLoggedIn(r)
 
-	fmt.Println("loggedIn: ", loggedIn)
-
 	dbMutex.Lock()
 	user, err := userFromUsername(username)
-	fmt.Println("Username: ", username)
 	dbMutex.Unlock()
 
 	if !loggedIn || err != nil {
