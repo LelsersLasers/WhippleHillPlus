@@ -9,10 +9,11 @@ import (
 )
 
 func userFromUsername(username string) (User, error) {
+	// Don't need to worry about mutex, the calling function will handle it
+
 	user := User{}
 
-	dbMutex.Lock()
-	defer dbMutex.Unlock()
+	fmt.Println("username: ", username)
 
 	rows, err := db.Query("SELECT * FROM users WHERE username = ?", username)
 	if err != nil {
@@ -31,11 +32,19 @@ func userFromUsername(username string) (User, error) {
 func isLoggedIn(r *http.Request) (bool, string) {
 	maybeDeleteInvalidSessions()
 
+	fmt.Println("isLoggedIn")
+
 	cookie, err := r.Cookie(SessionUsernameCookieName)
+	fmt.Println("err: ", err)
 	if err != nil {
 		return false, ""
 	}
+
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+
 	username := cookie.Value
+
 	user, err := userFromUsername(username)
 	if err != nil {
 		return false, ""
@@ -46,9 +55,6 @@ func isLoggedIn(r *http.Request) (bool, string) {
 		return false, username
 	}
 	token := cookie.Value
-
-	dbMutex.Lock()
-	defer dbMutex.Unlock()
 
 	now := time.Now().Unix()
 	rows, err := db.Query("SELECT * FROM sessions WHERE token = ? AND expiration > ? AND user_id = ?", token, now, user.ID)
@@ -70,13 +76,11 @@ func isLoggedIn(r *http.Request) (bool, string) {
 
 func login(w *http.ResponseWriter, r *http.Request, username string) {
 	// Already verified that login info is correct
+	// Don't need to worry about mutex, the calling function will handle it
 
 	// Check for existing session
 	cookie, err := r.Cookie(SessionTokenCookieName)
 	if err == nil {
-		dbMutex.Lock()
-		defer dbMutex.Unlock()
-
 		_, err := db.Exec("DELETE FROM sessions WHERE token = ?", cookie.Value)
 		if err != nil {
 			fmt.Println("Error deleting session: ", err)
@@ -99,9 +103,6 @@ func login(w *http.ResponseWriter, r *http.Request, username string) {
 		Path:    "/",
 	})
 
-	dbMutex.Lock()
-	defer dbMutex.Unlock()
-
 	user, err := userFromUsername(username)
 	if err != nil {
 		fmt.Println("Error getting user from username: ", err)
@@ -117,7 +118,7 @@ func login(w *http.ResponseWriter, r *http.Request, username string) {
 	http.Redirect(*w, r, "/", http.StatusSeeOther)
 }
 
-func logout(w *http.ResponseWriter, r *http.Request) {
+func logout(w *http.ResponseWriter, r *http.Request, redirect bool) {
 	// Check for existing session
 	cookie, err := r.Cookie(SessionTokenCookieName)
 	if err == nil {
@@ -141,7 +142,9 @@ func logout(w *http.ResponseWriter, r *http.Request) {
 		Expires: time.Now(),
 	})
 
-	http.Redirect(*w, r, "/login", http.StatusSeeOther)
+	if redirect {
+		http.Redirect(*w, r, "/login", http.StatusSeeOther)
+	}
 }
 
 func failContextToCookies(w *http.ResponseWriter, failContext map[string]string) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -9,10 +10,16 @@ import (
 
 func homeData(w http.ResponseWriter, r *http.Request) {
 	loggedIn, username := isLoggedIn(r)
+
+	fmt.Println("loggedIn: ", loggedIn)
+
+	dbMutex.Lock()
 	user, err := userFromUsername(username)
+	fmt.Println("Username: ", username)
+	dbMutex.Unlock()
 
 	if !loggedIn || err != nil {
-		logout(&w, r)
+		logout(&w, r, false)
 		data := map[string]interface{}{
 			"error": "Not logged in",
 		}
@@ -68,6 +75,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 	if rows.Next() {
 		passwordHash := ""
 		rows.Scan(&passwordHash)
+		rows.Close()
 		if bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)) == nil {
 			login(&w, r, username)
 			return
@@ -80,7 +88,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func logoutUser(w http.ResponseWriter, r *http.Request) {
-	logout(&w, r)
+	logout(&w, r, true)
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {
