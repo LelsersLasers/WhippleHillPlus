@@ -196,7 +196,7 @@ func allSemestersClassesAndAssignments(user_id int) ([]Semester, []Class, []Assi
 
 		for rows.Next() {
 			class := Class{}
-			rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemesterID)
+			rows.Scan(&class.ID, &class.Name, &class.SemesterID)
 			classes = append(classes, class)
 		}
 	}

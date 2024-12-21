@@ -348,7 +348,6 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 
 	var data struct {
 		Name       string `json:"name"`
-		UserID     string `json:"user_id"`
 		SemesterID string `json:"semester_id"`
 	}
 
@@ -361,7 +360,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
-	res, err := db.Exec("INSERT INTO classes (name, user_id, semester_id) VALUES (?, ?, ?)", data.Name, data.UserID, data.SemesterID)
+	res, err := db.Exec("INSERT INTO classes (name, semester_id) VALUES (?, ?, ?)", data.Name, data.SemesterID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert class", http.StatusInternalServerError)
 		return
@@ -383,7 +382,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	if rows.Next() {
-		rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemesterID)
+		rows.Scan(&class.ID, &class.Name, &class.SemesterID)
 	} else {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
@@ -429,7 +428,7 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	if rows.Next() {
-		rows.Scan(&class.ID, &class.Name, &class.UserID, &class.SemesterID)
+		rows.Scan(&class.ID, &class.Name, &class.SemesterID)
 	} else {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
