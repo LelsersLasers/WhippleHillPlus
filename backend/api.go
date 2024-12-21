@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func homePage(w http.ResponseWriter, r *http.Request) {
+func homeData(w http.ResponseWriter, r *http.Request) {
 	loggedIn, sessionID := isLoggedIn(r)
 	user, err := userFromUsername(sessionID)
 

@@ -37,7 +37,7 @@ func main() {
 	fileServer := http.FileServer(http.Dir(SvelteDir))
 	handler.Handle("/", checkLogin(fileServer))
 
-	handler.HandleFunc("/home_data", homePage)
+	handler.HandleFunc("/home_data", homeData)
 
 	handler.HandleFunc("/login", loginPage)
 	handler.HandleFunc("/register", registerPage)
