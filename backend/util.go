@@ -11,8 +11,8 @@ import (
 func userFromUsername(username string) (User, error) {
 	user := User{}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	rows, err := db.Query("SELECT * FROM users WHERE username = ?", username)
 	if err != nil {
@@ -29,6 +29,8 @@ func userFromUsername(username string) (User, error) {
 }
 
 func isLoggedIn(r *http.Request) (bool, string) {
+	maybeDeleteInvalidSessions()
+
 	cookie, err := r.Cookie(SessionUsernameCookieName)
 	if err != nil {
 		return false, ""
@@ -45,8 +47,8 @@ func isLoggedIn(r *http.Request) (bool, string) {
 	}
 	token := cookie.Value
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	now := time.Now().Unix()
 	rows, err := db.Query("SELECT * FROM sessions WHERE token = ? AND expiration > ? AND user_id = ?", token, now, user.ID)
@@ -72,8 +74,8 @@ func login(w *http.ResponseWriter, r *http.Request, username string) {
 	// Check for existing session
 	cookie, err := r.Cookie(SessionTokenCookieName)
 	if err == nil {
-		mutex.Lock()
-		defer mutex.Unlock()
+		dbMutex.Lock()
+		defer dbMutex.Unlock()
 
 		_, err := db.Exec("DELETE FROM sessions WHERE token = ?", cookie.Value)
 		if err != nil {
@@ -97,8 +99,8 @@ func login(w *http.ResponseWriter, r *http.Request, username string) {
 		Path:    "/",
 	})
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	user, err := userFromUsername(username)
 	if err != nil {
@@ -119,8 +121,8 @@ func logout(w *http.ResponseWriter, r *http.Request) {
 	// Check for existing session
 	cookie, err := r.Cookie(SessionTokenCookieName)
 	if err == nil {
-		mutex.Lock()
-		defer mutex.Unlock()
+		dbMutex.Lock()
+		defer dbMutex.Unlock()
 
 		_, err := db.Exec("DELETE FROM sessions WHERE token = ?", cookie.Value)
 		if err != nil {
@@ -172,8 +174,8 @@ func allSemestersClassesAndAssignments(user_id int) ([]Semester, []Class, []Assi
 	classes := []Class{}
 	assignments := []Assignment{}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 
 	rows, err := db.Query("SELECT * FROM semesters WHERE user_id = ?", user_id)
 	if err != nil {

@@ -26,8 +26,10 @@ const CleanInterval = 24 * time.Hour // 1 day
 const SvelteDir = "./../frontend/public"
 
 var (
-	db    *sql.DB
-	mutex sync.Mutex
+	db             *sql.DB
+	dbMutex        sync.Mutex
+	lastClean      int64
+	lastCleanMutex sync.Mutex
 )
 
 func main() {
@@ -64,7 +66,7 @@ func main() {
 
 	middlewareHandler := loggingMiddleware(corsMiddleware(handler))
 
-	go startSessionCleanup()
+	maybeDeleteInvalidSessions()
 
 	fmt.Printf("Server is running on port %d\n", Port)
 

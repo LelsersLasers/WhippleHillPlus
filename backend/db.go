@@ -21,9 +21,9 @@ func createTables(db *sql.DB) {
 
 	query := string(body)
 
-	mutex.Lock()
+	dbMutex.Lock()
 	_, err = db.Exec(query)
-	mutex.Unlock()
+	dbMutex.Unlock()
 
 	if err != nil {
 		panic(err.Error())
