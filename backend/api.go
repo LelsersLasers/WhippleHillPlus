@@ -471,7 +471,6 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 
 	var data struct {
 		Name      string `json:"name"`
-		UserID    string `json:"user_id"`
 		SortOrder string `json:"sort_order"`
 	}
 
@@ -481,10 +480,17 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, username := isLoggedIn(r)
+	user, err := userFromUsername(username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to get user", http.StatusInternalServerError)
+		return
+	}
+
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
-	res, err := db.Exec("INSERT INTO semesters (name, sort_order, user_id) VALUES (?, ?, ?)", data.Name, data.SortOrder, data.UserID)
+	res, err := db.Exec("INSERT INTO semesters (name, sort_order, user_id) VALUES (?, ?, ?)", data.Name, data.SortOrder, user.ID)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert semester", http.StatusInternalServerError)
 		return
