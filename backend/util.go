@@ -142,17 +142,9 @@ func logout(w *http.ResponseWriter, r *http.Request, redirect bool) {
 	}
 }
 
-func normalizeSemesterSortOrders(w http.ResponseWriter, r *http.Request) ([]Semester, error) {
+func normalizeSemesterSortOrders(w http.ResponseWriter, r *http.Request, user_id int) ([]Semester, error) {
 	// Don't need to worry about mutex, the calling function will handle it
-
-	_, username := isLoggedIn(r)
-	user, err := userFromUsername(username)
-	if err != nil {
-		http.Error(w, "Internal server error - failed to get user", http.StatusInternalServerError)
-		return nil, err
-	}
-
-	rows, err := db.Query("SELECT * FROM semesters WHERE user_id = ? ORDER BY sort_order", user.ID)
+	rows, err := db.Query("SELECT * FROM semesters WHERE user_id = ? ORDER BY sort_order", user_id)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to get semesters", http.StatusInternalServerError)
 		return nil, err

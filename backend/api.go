@@ -530,7 +530,7 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	semesters, err := normalizeSemesterSortOrders(w, r)
+	semesters, err := normalizeSemesterSortOrders(w, r, user.ID)
 	if err != nil {
 		return
 	}
@@ -553,6 +553,13 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
+
+	_, username := isLoggedIn(r)
+	user, err := userFromUsername(username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to get user", http.StatusInternalServerError)
 		return
 	}
 
@@ -581,7 +588,7 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	semesters, err := normalizeSemesterSortOrders(w, r)
+	semesters, err := normalizeSemesterSortOrders(w, r, user.ID)
 	if err != nil {
 		return
 	}
@@ -605,6 +612,13 @@ func deleteSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, username := isLoggedIn(r)
+	user, err := userFromUsername(username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to get user", http.StatusInternalServerError)
+		return
+	}
+
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
@@ -615,7 +629,7 @@ func deleteSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	semesters, err := normalizeSemesterSortOrders(w, r)
+	semesters, err := normalizeSemesterSortOrders(w, r, user.ID)
 	if err != nil {
 		return
 	}
