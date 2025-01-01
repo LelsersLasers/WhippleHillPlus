@@ -167,8 +167,7 @@ func normalizeSemesterSortOrders(w http.ResponseWriter, user_id int) ([]Semester
 				http.Error(w, "Internal server error - failed to update semester sort order", http.StatusInternalServerError)
 				return nil, err
 			}
-			sem.SortOrder = target_sort_order
-			fmt.Printf("Normalized semester %s (%d) to %d\n", sem.Name, sem.ID, target_sort_order)
+			semesters[i].SortOrder = target_sort_order
 		}
 	}
 
