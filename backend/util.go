@@ -142,7 +142,7 @@ func logout(w *http.ResponseWriter, r *http.Request, redirect bool) {
 	}
 }
 
-func normalizeSemesterSortOrders(w http.ResponseWriter, r *http.Request, user_id int) ([]Semester, error) {
+func normalizeSemesterSortOrders(w http.ResponseWriter, user_id int) ([]Semester, error) {
 	// Don't need to worry about mutex, the calling function will handle it
 	rows, err := db.Query("SELECT * FROM semesters WHERE user_id = ? ORDER BY sort_order", user_id)
 	if err != nil {

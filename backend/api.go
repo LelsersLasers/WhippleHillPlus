@@ -530,7 +530,7 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	semesters, err := normalizeSemesterSortOrders(w, r, user.ID)
+	semesters, err := normalizeSemesterSortOrders(w, user.ID)
 	if err != nil {
 		return
 	}
@@ -588,7 +588,7 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	semesters, err := normalizeSemesterSortOrders(w, r, user.ID)
+	semesters, err := normalizeSemesterSortOrders(w, user.ID)
 	if err != nil {
 		return
 	}
@@ -629,7 +629,7 @@ func deleteSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	semesters, err := normalizeSemesterSortOrders(w, r, user.ID)
+	semesters, err := normalizeSemesterSortOrders(w, user.ID)
 	if err != nil {
 		return
 	}
