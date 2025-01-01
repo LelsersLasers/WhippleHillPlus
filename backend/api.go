@@ -27,7 +27,7 @@ func homeData(w http.ResponseWriter, r *http.Request) {
 	// classes, assignments := allClassesAndAssignments(user.ID)
 	semesters, classes, assignments := allSemestersClassesAndAssignments(user.ID)
 	data := map[string]interface{}{
-		"user":        user,
+		"user_name":   user.Name,
 		"semesters":   semesters,
 		"classes":     classes,
 		"assignments": assignments,

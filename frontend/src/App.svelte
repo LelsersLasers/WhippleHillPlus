@@ -10,7 +10,7 @@
     let assignments = [];
     let classes = [];
     let semesters = [];
-    let user = {};
+    let user_name = "Loading...";
 
     let semester = -1;
     let semesterValue = -1;
@@ -40,7 +40,7 @@
                 assignments = data["assignments"];
                 classes = data["classes"];
                 semesters = data["semesters"];
-                user = data["user"];
+                user_name = data["user_name"];
 
                 if (semester == -1) {
                     semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
@@ -852,7 +852,7 @@ button[type="submit"] {
 
 
 <div id="holder">
-<h1>Welcome, {user.name}!</h1>
+<h1>Welcome, {user_name}!</h1>
 
 <select id="semesterSelector" name="semesterSelector" on:change={updateSemesterValue} bind:value={semesterValue}>
     {#each semesters as s (s.id)}
@@ -1015,7 +1015,6 @@ button[type="submit"] {
                 <option value={s.id}>{s.name}</option>
             {/each}
         </select>
-        <input type="hidden" name="user_id" value={user.id}>
         
         <br />
         <button type="submit" disabled={!createClassModalButton}>Create</button>
