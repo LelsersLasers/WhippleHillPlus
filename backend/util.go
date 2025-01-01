@@ -149,25 +149,26 @@ func normalizeSemesterSortOrders(w http.ResponseWriter, user_id int) ([]Semester
 		http.Error(w, "Internal server error - failed to get semesters", http.StatusInternalServerError)
 		return nil, err
 	}
-	defer rows.Close()
 
 	semesters := []Semester{}
 
-	i := 1
 	for rows.Next() {
 		sem := Semester{}
 		rows.Scan(&sem.ID, &sem.Name, &sem.SortOrder, &sem.UserID)
-		if sem.SortOrder != i {
-			_, err := db.Exec("UPDATE semesters SET sort_order = ? WHERE id = ?", i, sem.ID)
+		semesters = append(semesters, sem)
+	}
+	rows.Close()
+
+	for i, sem := range semesters {
+		target_sort_order := i + 1
+		if sem.SortOrder != target_sort_order {
+			_, err := db.Exec("UPDATE semesters SET sort_order = ? WHERE id = ?", target_sort_order, sem.ID)
 			if err != nil {
 				http.Error(w, "Internal server error - failed to update semester sort order", http.StatusInternalServerError)
 				return nil, err
 			}
+			sem.SortOrder = target_sort_order
 		}
-
-		sem.SortOrder = i
-		semesters = append(semesters, sem)
-		i++
 	}
 
 	return semesters, nil
