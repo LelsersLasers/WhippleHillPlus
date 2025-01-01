@@ -168,6 +168,7 @@ func normalizeSemesterSortOrders(w http.ResponseWriter, user_id int) ([]Semester
 				return nil, err
 			}
 			sem.SortOrder = target_sort_order
+			fmt.Printf("Normalized semester %s (%d) to %d\n", sem.Name, sem.ID, target_sort_order)
 		}
 	}
 
