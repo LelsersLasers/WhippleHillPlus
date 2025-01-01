@@ -552,6 +552,11 @@
             return;
         }
 
+        if (semesters.length == 1) {
+            alert("Cannot delete the last semester.");
+            return;
+        }
+
         deleteSemesterModalButton = false;
 
         const data = { 'id': id };
