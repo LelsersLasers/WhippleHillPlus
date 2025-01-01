@@ -134,7 +134,6 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	if rows.Next() {
 		failContext["error_message"] = "Username already in use"
@@ -153,6 +152,14 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	_, err = db.Exec("INSERT INTO users (username, name, password_hash) VALUES (?, ?, ?)", username, name, passwordHashStr)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert user", http.StatusInternalServerError)
+		return
+	}
+	rows.Close()
+
+	// Also create a default semester
+	_, err = db.Exec("INSERT INTO semesters (name, sort_order, user_id) VALUES (?, ?, (SELECT id FROM users WHERE username = ?))", DefaultSemesterName, 1, username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to insert semester", http.StatusInternalServerError)
 		return
 	}
 

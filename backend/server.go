@@ -21,6 +21,8 @@ const SessionTimeout = 2 * 7 * 24 * time.Hour // 2 weeks
 const ContextFailCookieNameBase = "context_fail_"
 const ContextFailCookieTimeout = 5 * time.Second
 
+const DefaultSemesterName = "Semester 1"
+
 const CleanInterval = 24 * time.Hour // 1 day
 
 const SvelteDir = "./../frontend/public"
