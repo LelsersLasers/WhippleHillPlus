@@ -24,10 +24,9 @@ func homeData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// classes, assignments := allClassesAndAssignments(user.ID)
 	semesters, classes, assignments := allSemestersClassesAndAssignments(user.ID)
 	data := map[string]interface{}{
-		"user":        user,
+		"user_name":   user.Name,
 		"semesters":   semesters,
 		"classes":     classes,
 		"assignments": assignments,
@@ -134,7 +133,6 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	if rows.Next() {
 		failContext["error_message"] = "Username already in use"
@@ -150,9 +148,23 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	passwordHashStr := string(passwordHash)
 
-	_, err = db.Exec("INSERT INTO users (username, name, password_hash) VALUES (?, ?, ?)", username, name, passwordHashStr)
+	res, err := db.Exec("INSERT INTO users (username, name, password_hash) VALUES (?, ?, ?)", username, name, passwordHashStr)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert user", http.StatusInternalServerError)
+		return
+	}
+	rows.Close()
+
+	// Also create a default semester
+	id, err := res.LastInsertId()
+	if err != nil {
+		http.Error(w, "Internal server error - failed to get last id", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = db.Exec("INSERT INTO semesters (name, sort_order, user_id) VALUES (?, ?, ?)", DefaultSemesterName, 1, id)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to insert semester", http.StatusInternalServerError)
 		return
 	}
 
@@ -509,7 +521,6 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&semester.ID, &semester.Name, &semester.SortOrder, &semester.UserID)
@@ -517,9 +528,15 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	rows.Close()
+
+	semesters, err := normalizeSemesterSortOrders(w, user.ID)
+	if err != nil {
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(semester)
+	json.NewEncoder(w).Encode(semesters)
 }
 
 func updateSemester(w http.ResponseWriter, r *http.Request) {
@@ -539,6 +556,13 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, username := isLoggedIn(r)
+	user, err := userFromUsername(username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to get user", http.StatusInternalServerError)
+		return
+	}
+
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
@@ -555,7 +579,6 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&semester.ID, &semester.Name, &semester.SortOrder, &semester.UserID)
@@ -563,9 +586,15 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	rows.Close()
+
+	semesters, err := normalizeSemesterSortOrders(w, user.ID)
+	if err != nil {
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(semester)
+	json.NewEncoder(w).Encode(semesters)
 }
 
 func deleteSemester(w http.ResponseWriter, r *http.Request) {
@@ -583,6 +612,13 @@ func deleteSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, username := isLoggedIn(r)
+	user, err := userFromUsername(username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to get user", http.StatusInternalServerError)
+		return
+	}
+
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
@@ -592,4 +628,12 @@ func deleteSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to delete semester", http.StatusInternalServerError)
 		return
 	}
+
+	semesters, err := normalizeSemesterSortOrders(w, user.ID)
+	if err != nil {
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(semesters)
 }

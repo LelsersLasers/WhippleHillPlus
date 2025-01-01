@@ -142,6 +142,38 @@ func logout(w *http.ResponseWriter, r *http.Request, redirect bool) {
 	}
 }
 
+func normalizeSemesterSortOrders(w http.ResponseWriter, user_id int) ([]Semester, error) {
+	// Don't need to worry about mutex, the calling function will handle it
+	rows, err := db.Query("SELECT * FROM semesters WHERE user_id = ? ORDER BY sort_order", user_id)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to get semesters", http.StatusInternalServerError)
+		return nil, err
+	}
+
+	semesters := []Semester{}
+
+	for rows.Next() {
+		sem := Semester{}
+		rows.Scan(&sem.ID, &sem.Name, &sem.SortOrder, &sem.UserID)
+		semesters = append(semesters, sem)
+	}
+	rows.Close()
+
+	for i, sem := range semesters {
+		target_sort_order := i + 1
+		if sem.SortOrder != target_sort_order {
+			_, err := db.Exec("UPDATE semesters SET sort_order = ? WHERE id = ?", target_sort_order, sem.ID)
+			if err != nil {
+				http.Error(w, "Internal server error - failed to update semester sort order", http.StatusInternalServerError)
+				return nil, err
+			}
+			semesters[i].SortOrder = target_sort_order
+		}
+	}
+
+	return semesters, nil
+}
+
 func failContextToCookies(w *http.ResponseWriter, failContext map[string]string) {
 	for key, value := range failContext {
 		http.SetCookie(*w, &http.Cookie{
