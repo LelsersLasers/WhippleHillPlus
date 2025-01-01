@@ -518,8 +518,13 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	semesters, err := normalizeSemesterSortOrders(w, r)
+	if err != nil {
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(semester)
+	json.NewEncoder(w).Encode(semesters)
 }
 
 func updateSemester(w http.ResponseWriter, r *http.Request) {
@@ -564,8 +569,13 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	semesters, err := normalizeSemesterSortOrders(w, r)
+	if err != nil {
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(semester)
+	json.NewEncoder(w).Encode(semesters)
 }
 
 func deleteSemester(w http.ResponseWriter, r *http.Request) {
@@ -592,4 +602,12 @@ func deleteSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to delete semester", http.StatusInternalServerError)
 		return
 	}
+
+	semesters, err := normalizeSemesterSortOrders(w, r)
+	if err != nil {
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(semesters)
 }

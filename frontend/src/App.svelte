@@ -505,10 +505,11 @@
         })
             .then((res) =>res.json())
             .then((data) => {
-                semesters = [...semesters, data];
+                semesters = data;
                 if (semesters.length == 1) {
                     semester = semesters[0].id;
                 }
+                
                 document.getElementById("createSemesterModalName").value = "";
                 document.getElementById("createSemesterModalSortOrder").value = "1";
                 showCreateSemesterModal = false;
@@ -530,10 +531,8 @@
         })
             .then((res) => res.json())
             .then((data) => {
-                semesters = semesters.map((s) => {
-                    if (s.id === data.id) return data;
-                    else                  return s;
-                });
+                semesters = data;
+
                 updateSemesterModalName = "";
                 updateSemesterModalSortOrder = "1";
                 showUpdateSemesterModal = false;
@@ -547,30 +546,6 @@
         updateSemesterModalId = s.id;
         showUpdateSemesterModal = true;
     }
-    // function deleteSemesterButton(id) {
-    //     const data = {
-    //         'id': id,
-    //     }
-    //     deleteSemesterModalButton = false;
-
-    //     fetch(`${api}/delete_semester`, {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //         },
-    //         body: JSON.stringify(data),
-    //     })
-    //         .then((res) => {
-    //             semesters = semesters.filter((s) => s.id !== id);
-    //             semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
-
-    //             if (semester == id && semesters[0]) {
-    //                 semester = semesters[0].id;
-    //             }
-
-    //             deleteSemesterModalButton = true;
-    //         })
-    // }
     function deleteModalButtonSemester(id) {
         if (classes.find((c) => c.semester_id == id)) {
             alert("Cannot delete a semester with classes in it.");
@@ -587,10 +562,10 @@
             },
             body: JSON.stringify(data),
         })
-            .then((res) => {
-                semesters = semesters.filter((s) => s.id !== id);
-                semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
-
+            .then((res) => res.json())
+            .then((data) => {
+                semesters = data;
+            
                 if (semester == id && semesters[0]) {
                     semester = semesters[0].id;
                     semesterValue = semester;
