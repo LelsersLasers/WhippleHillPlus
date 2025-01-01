@@ -24,7 +24,6 @@ func homeData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// classes, assignments := allClassesAndAssignments(user.ID)
 	semesters, classes, assignments := allSemestersClassesAndAssignments(user.ID)
 	data := map[string]interface{}{
 		"user_name":   user.Name,
@@ -149,7 +148,7 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	passwordHashStr := string(passwordHash)
 
-	_, err = db.Exec("INSERT INTO users (username, name, password_hash) VALUES (?, ?, ?)", username, name, passwordHashStr)
+	res, err := db.Exec("INSERT INTO users (username, name, password_hash) VALUES (?, ?, ?)", username, name, passwordHashStr)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert user", http.StatusInternalServerError)
 		return
@@ -157,7 +156,13 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	rows.Close()
 
 	// Also create a default semester
-	_, err = db.Exec("INSERT INTO semesters (name, sort_order, user_id) VALUES (?, ?, (SELECT id FROM users WHERE username = ?))", DefaultSemesterName, 1, username)
+	id, err := res.LastInsertId()
+	if err != nil {
+		http.Error(w, "Internal server error - failed to get last id", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = db.Exec("INSERT INTO semesters (name, sort_order, user_id) VALUES (?, ?, ?)", DefaultSemesterName, 1, id)
 	if err != nil {
 		http.Error(w, "Internal server error - failed to insert semester", http.StatusInternalServerError)
 		return
