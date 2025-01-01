@@ -516,7 +516,6 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&semester.ID, &semester.Name, &semester.SortOrder, &semester.UserID)
@@ -524,6 +523,7 @@ func createSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	rows.Close()
 
 	semesters, err := normalizeSemesterSortOrders(w, r)
 	if err != nil {
@@ -567,7 +567,6 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	if rows.Next() {
 		rows.Scan(&semester.ID, &semester.Name, &semester.SortOrder, &semester.UserID)
@@ -575,6 +574,7 @@ func updateSemester(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error - failed to query database", http.StatusInternalServerError)
 		return
 	}
+	rows.Close()
 
 	semesters, err := normalizeSemesterSortOrders(w, r)
 	if err != nil {
