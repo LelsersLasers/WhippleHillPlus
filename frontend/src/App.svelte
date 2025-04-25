@@ -363,9 +363,9 @@
 
         let nextSundayDate = new Date(todayDate);
         if (7 - todayDate.getDay() < 2) {
-            nextSundayDate.setDate(todayDate.getDate() + (14 - todayDate.getDay()));
+            nextSundayDate.setDate(todayDate.getDate() + (21 - todayDate.getDay()));
         } else {
-            nextSundayDate.setDate(todayDate.getDate() + (7 - todayDate.getDay()));
+            nextSundayDate.setDate(todayDate.getDate() + (14 - todayDate.getDay()));
         }
 
         return [todayDate, pastSundayDate, nextSundayDate];
