@@ -30,7 +30,7 @@
                 console.log(data);
 
                 if (data["error"]) {
-                    // window.location.href = "/login";
+                    window.location.href = "/login";
                     return;
                 }
 
@@ -262,9 +262,6 @@
     let typeFilter = ["Homework", "Quiz", "Test", "Project", "Paper", "Other"];
 
     let [today, pastSunday, nextSunday] = createDates();
-    
-    let dateWeekStart = formatDateObj(pastSunday);
-    let dateWeekEnd = formatDateObj(nextSunday);
 
     let dateStart = formatDateObj(pastSunday);
     let dateEnd = formatDateObj(nextSunday);
@@ -317,12 +314,15 @@
             return start1 <= end2 && end1 >= start2;
         }
 
-        const start1 = new Date(dateWeekStart);
-        const end1 = new Date(dateWeekEnd);
-
         if (dateFilter == "all") {
             shownAssignments = assignments.filter((a) => semesterCheck(a));
         } else if (dateFilter == "week") {
+            let dateWeekStart = formatDateObj(pastSunday);
+            let dateWeekEnd = formatDateObj(nextSunday);
+
+            const start1 = new Date(dateWeekStart);
+            const end1 = new Date(dateWeekEnd);
+
             shownAssignments = assignments.filter((a) => {
                 const dueDate = new Date(a.due_date);
                 const assignedDate = new Date(a.assigned_date);
@@ -355,17 +355,20 @@
     }
 
     function createDates() {
-        let today = new Date();
-        today.setHours(0, 0, 0, 0);
+        let todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
 
-        let pastSunday = new Date(today);
-        pastSunday.setDate(today.getDate() - today.getDay());
-        
-        let nextSunday = new Date(today);
-        if (7 - today.getDay() < 2) nextSunday.setDate(today.getDate() + (14 - today.getDay()));
-        else                        nextSunday.setDate(today.getDate() + (7  - today.getDay));
+        let pastSundayDate = new Date(todayDate);
+        pastSundayDate.setDate(todayDate.getDate() - todayDate.getDay());
 
-        return [today, pastSunday, nextSunday];
+        let nextSundayDate = new Date(todayDate);
+        if (7 - todayDate.getDay() < 2) {
+            nextSundayDate.setDate(todayDate.getDate() + (21 - todayDate.getDay()));
+        } else {
+            nextSundayDate.setDate(todayDate.getDate() + (14 - todayDate.getDay()));
+        }
+
+        return [todayDate, pastSundayDate, nextSundayDate];
     }
 
 
@@ -744,6 +747,7 @@
                 processMainData(fetch(`${api}/home_data`));
                 [today, pastSunday, nextSunday] = createDates();
             }
+            document.getElementById("createAssignmentModalAssignedDate").valueAsDate = localDate();
         });
     });
 </script>
