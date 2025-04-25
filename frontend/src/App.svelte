@@ -30,7 +30,7 @@
                 console.log(data);
 
                 if (data["error"]) {
-                    // window.location.href = "/login";
+                    window.location.href = "/login";
                     return;
                 }
 
