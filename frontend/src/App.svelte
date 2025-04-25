@@ -29,7 +29,7 @@
             .then((data) => {
                 console.log(data);
 
-                if (data["error"]) {
+                if (data["error"] && data["error"] != "") {
                     window.location.href = "/login";
                     return;
                 }
