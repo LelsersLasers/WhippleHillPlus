@@ -317,19 +317,19 @@
         if (dateFilter == "all") {
             shownAssignments = assignments.filter((a) => semesterCheck(a));
         } else if (dateFilter == "week") {
-            let dateWeekStart = formatDateObj(pastSunday);
-            let dateWeekEnd = formatDateObj(nextSunday);
-
-            const start1 = new Date(dateWeekStart);
-            const end1 = new Date(dateWeekEnd);
-
             shownAssignments = assignments.filter((a) => {
                 const dueDate = new Date(a.due_date);
                 const assignedDate = new Date(a.assigned_date);
                 if (rangeIncludesAssigned) {
+                    const start1 = new Date(dateWeekStart);
+                    const end1 = new Date(dateWeekEnd);
+
                     const overlaps = datesOverlap(start1, end1, assignedDate, dueDate);
                     return (semesterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && overlaps) || missingCheck(a);
                 } else {
+                    let dateWeekStart = formatDateObj(pastSunday);
+                    let dateWeekEnd = formatDateObj(nextSunday);
+
                     const dueDateInRange = dueDate >= new Date(dateWeekStart) && dueDate <= new Date(dateWeekEnd);
                     return (semesterCheck(a) && classFilterCheck(a) && statusFilterCheck(a) && typeFilterCheck(a) && dueDateInRange) || missingCheck(a);
                 }
@@ -367,6 +367,8 @@
         } else {
             nextSundayDate.setDate(todayDate.getDate() + (14 - todayDate.getDay()));
         }
+
+        console.log({todayDate, pastSundayDate, nextSundayDate});
 
         return [todayDate, pastSundayDate, nextSundayDate];
     }
