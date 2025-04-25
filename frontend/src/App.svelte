@@ -747,6 +747,7 @@
                 processMainData(fetch(`${api}/home_data`));
                 [today, pastSunday, nextSunday] = createDates();
             }
+            document.getElementById("createAssignmentModalAssignedDate").valueAsDate = localDate();
         });
     });
 </script>
