@@ -37,9 +37,13 @@ var (
 )
 
 func main() {
+	fmt.Println("Starting server...")
+
 	db = dbConn()
 	createTables(db)
 	defer db.Close()
+
+	fmt.Println("Database connected")
 
 	handler := http.NewServeMux()
 
@@ -73,11 +77,14 @@ func main() {
 
 	middlewareHandler := loggingMiddleware(corsMiddleware(handler))
 
+	fmt.Println("Server started")
+
 	maybeDeleteInvalidSessions()
 
 	fmt.Printf("Server is running on port %d\n", Port)
 
 	addr := fmt.Sprintf("[::]:%d", Port)
+	
 	err := http.ListenAndServe(addr, middlewareHandler)
 	if err != nil {
 		fmt.Println("Error starting server: ", err)
