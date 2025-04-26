@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,9 +34,62 @@ func homeData(w http.ResponseWriter, r *http.Request) {
 		"classes":     classes,
 		"assignments": assignments,
 	}
+	if user.ICSLink != "" {
+		data["ics_link"] = user.ICSLink
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
+}
+
+func generateICSHandler(w http.ResponseWriter, r *http.Request) {
+	loggedIn, username := isLoggedIn(r)
+	if !loggedIn {
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+
+	icsLink := uuid.New().String()
+	_, err := db.Exec("UPDATE users SET ics_link = ? WHERE username = ?", icsLink, username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to update ICS link", http.StatusInternalServerError)
+		return
+	}
+
+	var data struct {
+		ICSLink string `json:"ics_link"`
+	}
+	data.ICSLink = icsLink
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
+
+func icsHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract UUID from path, e.g. /ics/abc-123 -> "abc-123"
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) != 3 || pathParts[2] == "" {
+		http.Error(w, "Invalid ICS URL", http.StatusBadRequest)
+		return
+	}
+	uuid := pathParts[2]
+
+	userID, err := getUserIDFromUUID(uuid)
+	if err != nil {
+		http.Error(w, "Invalid token/ICS link", http.StatusUnauthorized)
+		return
+	}
+
+	_, classes, assignments := allSemestersClassesAndAssignments(userID)
+
+	icsData := generateICS(classes, assignments)
+
+	w.Header().Set("Content-Type", "text/calendar")
+	w.Header().Set("Content-Disposition", "attachment; filename=assignments.ics")
+	fmt.Fprint(w, icsData)
 }
 
 func loginUser(w http.ResponseWriter, r *http.Request) {
