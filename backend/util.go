@@ -276,8 +276,6 @@ func generateICS(classes []Class, assignments []Assignment) string {
 	cal.SetMethod(ics.MethodPublish)
 	cal.SetName("WH+ Assignments")
 
-	fmt.Println("\nGenerating ICS file...\n\n")
-
 	for _, a := range assignments {
 		dueTime := a.DueTime
 		if dueTime == "" {
@@ -288,7 +286,6 @@ func generateICS(classes []Class, assignments []Assignment) string {
 		startTime, err := time.Parse("2006-01-02 15:04", dateOnly + " " + dueTime)
 		if err != nil {
 			fmt.Println("Error parsing due date and time: ", err)
-			fmt.Println("'" + dateOnly + " " + dueTime + "'")
 			continue
 		}
 
@@ -309,15 +306,16 @@ func generateICS(classes []Class, assignments []Assignment) string {
 		if a.Description != "" {
 			event.SetDescription(a.Description)
 		}
-		event.SetStartAt(startTime)
-		event.SetEndAt(endTime)
+		// event.SetStartAt(startTime)
+		// event.SetEndAt(endTime)
+
+		event.SetProperty(ics.ComponentPropertyDtStart, startTime.Format("20060102T150405"))
+		event.SetProperty(ics.ComponentPropertyDtEnd, endTime.Format("20060102T150405"))
+
 		event.SetCreatedTime(time.Now())
 		event.SetURL("https://lelserslasers.alwaysdata.net/")
 
 		cal.AddVEvent(event)
-
-		fmt.Println("Event ID: ", event.Id())
-		fmt.Println("Event created: ", event)
 	}
 
 	return cal.Serialize()
