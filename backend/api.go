@@ -72,7 +72,8 @@ func icsHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract UUID from path, e.g. /ics/abc-123 -> "abc-123"
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) != 3 || pathParts[2] == "" {
-		http.Error(w, "Invalid ICS URL", http.StatusBadRequest)
+		errStr := fmt.Sprintf("Invalid ICS URL: %s", r.URL.Path)
+		http.Error(w, errStr, http.StatusBadRequest)
 		return
 	}
 	uuid := pathParts[2]
