@@ -255,7 +255,7 @@ func getUserIDFromUUID(uuid string) (int, error) {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
-	rows, err := db.Query("SELECT user_id FROM users WHERE ics_link = ?", uuid)
+	rows, err := db.Query("SELECT id FROM users WHERE ics_link = ?", uuid)
 	if err != nil {
 		return -1, err
 	}
