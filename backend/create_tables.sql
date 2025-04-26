@@ -5,6 +5,7 @@ pragma foreign_keys = ON;
 -- 	- username (text)
 -- 	- name (text)
 -- 	- password_hash (text)
+-- 	- ics_link (text, unique)
 -- - sessions
 -- 	- id (int, pk)
 -- 	- token (text)
