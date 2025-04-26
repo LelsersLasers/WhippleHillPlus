@@ -11,6 +11,7 @@
     let classes = [];
     let semesters = [];
     let user_name = "Loading...";
+    let ics_link = "";
 
     let semester = -1;
     let semesterValue = -1;
@@ -41,6 +42,9 @@
                 classes = data["classes"];
                 semesters = data["semesters"];
                 user_name = data["user_name"];
+                if (data["ics_link"]) {
+                    ics_link = `${api}/ics/${data["ics_link"]}`;
+                }
 
                 if (semester == -1) {
                     semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
@@ -191,6 +195,8 @@
         return date;
     }
 
+    let showICSModal = false;
+    let generateICSLinkButton = true;
     
     let showCreateSemesterModal = false;
     let createSemesterModalButton = true;
@@ -727,6 +733,22 @@
     }
 
 
+    function generateICSLink() {
+        generateICSLinkButton = false;
+
+        fetch(`${api}/ics/generate`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                ics_link = `${api}/ics/${data["ics_link"]}`;
+                generateICSLinkButton = true;
+            })
+    }
+
 
     addEventListener("DOMContentLoaded", () => {
         document.getElementById("createClass").addEventListener("submit", createClass);
@@ -868,6 +890,7 @@ button[type="submit"] {
     <button type="button" on:click={() => page = "assignments"}>View Assignments</button>
     <button type="button" on:click={() => { showCreateClassModal = true; document.getElementById("createClassModalSemesterID").value = semester; }}>Create Class</button>
     <button type="button" on:click={() => showAllSemestersModal = true}>Semesters</button>
+    <button type="button" on:click={() => showICSModal = true}>Calendar Integration</button>
 
     <table>
         <tr>
@@ -951,6 +974,23 @@ button[type="submit"] {
 {/if}
 
 </div>
+
+<Modal bind:showModal={showICSModal}>
+    <h2>Calender Integration (ICS)</h2>
+    {#if ics_link != ""}
+        <p>Subscribe to your assignments in your calendar app!</p>
+        <p>{ics_link}</p>
+    {:else}
+        <p>No assignments found.</p>
+    {/if}
+    <button id="generateICSLinkButton" type="button" disabled={!generateICSLinkButton} on:click={generateICSLink}>
+        {#if ics_link == ""}
+            Generate Link
+        {:else}
+            Regenerate Link
+        {/if}
+    </button>
+</Modal>
 
 
 <Modal bind:showModal={showCreateSemesterModal}>
