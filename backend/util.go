@@ -272,8 +272,8 @@ func getUserIDFromUUID(uuid string) (int, error) {
 
 func generateICS(classes []Class, assignments []Assignment) string {
 	cal := ics.NewCalendar()
-	cal.SetMethod(ics.MethodRequest)
-	cal.SetName("Assignments Calendar")
+	cal.SetMethod(ics.MethodPublish)
+	cal.SetName("WH+ Assignments")
 
 	for _, a := range assignments {
 		dueTime := a.DueTime
@@ -298,7 +298,7 @@ func generateICS(classes []Class, assignments []Assignment) string {
 
 		classStr := fmt.Sprintf("%s: ", class.Name)
 
-		event := cal.AddEvent(fmt.Sprintf("assignment-%d", a.ID))
+		event := ics.NewEvent(fmt.Sprintf("assignment-%d", a.ID))
 		event.SetSummary(fmt.Sprintf("%s%s", classStr, a.Name))
 		if a.Description != "" {
 			event.SetDescription(a.Description)
@@ -307,6 +307,11 @@ func generateICS(classes []Class, assignments []Assignment) string {
 		event.SetEndAt(endTime)
 		event.SetCreatedTime(time.Now())
 		event.SetURL("https://lelserslasers.alwaysdata.net/")
+
+		cal.AddVEvent(event)
+
+		fmt.Println("Event ID: ", event.Id())
+		fmt.Println("Event created: ", event)
 	}
 
 	return cal.Serialize()
