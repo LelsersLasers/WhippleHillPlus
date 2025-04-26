@@ -76,7 +76,9 @@ func icsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errStr, http.StatusBadRequest)
 		return
 	}
-	uuid := pathParts[2]
+
+	uuidParts := strings.Split(pathParts[2], ".")
+	uuid := uuidParts[0]
 
 	userID, err := getUserIDFromUUID(uuid)
 	if err != nil {

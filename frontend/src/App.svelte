@@ -43,7 +43,7 @@
                 semesters = data["semesters"];
                 user_name = data["user_name"];
                 if (data["ics_link"]) {
-                    ics_link = `${api}/ics/${data["ics_link"]}`;
+                    ics_link = `${api}/ics/${data["ics_link"]}.ics`;
                 }
 
                 if (semester == -1) {
@@ -744,7 +744,7 @@
         })
             .then((res) => res.json())
             .then((data) => {
-                ics_link = `${api}/ics/${data["ics_link"]}`;
+                ics_link = `${api}/ics/${data["ics_link"]}.ics`;
                 generateICSLinkButton = true;
             })
     }
