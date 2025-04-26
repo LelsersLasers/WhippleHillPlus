@@ -275,6 +275,8 @@ func generateICS(classes []Class, assignments []Assignment) string {
 	cal.SetMethod(ics.MethodPublish)
 	cal.SetName("WH+ Assignments")
 
+	fmt.Println("\nGenerating ICS file...\n\n")
+
 	for _, a := range assignments {
 		dueTime := a.DueTime
 		if dueTime == "" {
