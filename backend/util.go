@@ -285,6 +285,8 @@ func generateICS(classes []Class, assignments []Assignment) string {
 
 		startTime, err := time.Parse("2006-01-02 15:04", a.DueDate+" "+dueTime)
 		if err != nil {
+			fmt.Println("Error parsing due date and time: ", err)
+			fmt.Println("'" + a.DueDate + " " + dueTime + "'")
 			continue
 		}
 
