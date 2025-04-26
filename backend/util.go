@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/arran4/golang-ical"
 )
 
 func userFromUsername(username string) (User, error) {
@@ -248,4 +249,65 @@ func allSemestersClassesAndAssignments(user_id int) ([]Semester, []Class, []Assi
 	}
 
 	return semesters, classes, assignments
+}
+
+func getUserIDFromUUID(uuid string) (int, error) {
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+
+	rows, err := db.Query("SELECT user_id FROM users WHERE ics_link = ?", uuid)
+	if err != nil {
+		return -1, err
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		var userID int
+		rows.Scan(&userID)
+		return userID, nil
+	}
+
+	return -1, fmt.Errorf("User not found")
+}
+
+func generateICS(classes []Class, assignments []Assignment) string {
+	cal := ics.NewCalendar()
+	cal.SetMethod(ics.MethodRequest)
+	cal.SetName("Assignments Calendar")
+
+	for _, a := range assignments {
+		dueTime := a.DueTime
+		if dueTime == "" {
+			dueTime = ICSDefaultDueTime
+		}
+
+		startTime, err := time.Parse("2006-01-02 15:04", a.DueDate+" "+dueTime)
+		if err != nil {
+			continue
+		}
+
+		endTime := startTime.Add(10 * time.Minute)
+
+		class := Class{}
+		for _, c := range classes {
+			if c.ID == a.ClassID {
+				class = c
+				break
+			}
+		}
+
+		classStr := fmt.Sprintf("%s: ", class.Name)
+
+		event := cal.AddEvent(fmt.Sprintf("assignment-%d", a.ID))
+		event.SetSummary(fmt.Sprintf("%s%s", classStr, a.Name))
+		if a.Description != "" {
+			event.SetDescription(a.Description)
+		}
+		event.SetStartAt(startTime)
+		event.SetEndAt(endTime)
+		event.SetCreatedTime(time.Now())
+		event.SetURL("https://lelserslasers.alwaysdata.net/")
+	}
+
+	return cal.Serialize()
 }
