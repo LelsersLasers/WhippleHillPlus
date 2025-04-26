@@ -80,7 +80,8 @@ func icsHandler(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := getUserIDFromUUID(uuid)
 	if err != nil {
-		http.Error(w, "Invalid token/ICS link", http.StatusUnauthorized)
+		errStr := fmt.Sprintf("Invalid UUID: %s", uuid)
+		http.Error(w, errStr, http.StatusUnauthorized)
 		return
 	}
 
