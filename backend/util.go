@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/arran4/golang-ical"
+	"github.com/google/uuid"
 )
 
 func userFromUsername(username string) (User, error) {
@@ -283,7 +284,8 @@ func generateICS(classes []Class, assignments []Assignment) string {
 			dueTime = ICSDefaultDueTime
 		}
 
-		startTime, err := time.Parse("2006-01-02 15:04", a.DueDate+" "+dueTime)
+		dateOnly := strings.Split(a.DueDate, "T")[0]
+		startTime, err := time.Parse("2006-01-02 15:04", dateOnly + " " + dueTime)
 		if err != nil {
 			fmt.Println("Error parsing due date and time: ", err)
 			fmt.Println("'" + a.DueDate + " " + dueTime + "'")
