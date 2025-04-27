@@ -279,6 +279,7 @@ func generateICS(classes []Class, assignments []Assignment, timezone string) str
 	cal.SetMethod(ics.MethodPublish)
 	cal.SetName("WH+ Assignments")
 	cal.SetTimezoneId(timezone)
+	cal.SetXWRTimezone(timezone)
 
 	for _, a := range assignments {
 		dueTime := a.DueTime
