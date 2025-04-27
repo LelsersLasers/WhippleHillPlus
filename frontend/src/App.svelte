@@ -1,4 +1,5 @@
 <script>
+    import TimezonePicker from 'svelte-timezone-picker';
     import Modal from "./Modal.svelte";
     import { fly } from "svelte/transition"; 
 
@@ -22,6 +23,8 @@
 
     let unique = {};
 
+    let timezone = "";
+
     processMainData(data);
 
     function processMainData(f) {
@@ -44,6 +47,12 @@
                 user_name = data["user_name"];
                 if (data["ics_link"]) {
                     ics_link = `${api}/ics/${data["ics_link"]}.ics`;
+                }
+                if (data["timezone"]) {
+                    timezone = data["timezone"];
+                } else {
+                    timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    updateTimezone({ detail: { timezone: timezone } });
                 }
 
                 if (semester == -1) {
@@ -749,6 +758,26 @@
             })
     }
 
+    function updateTimezone(ev) {
+        generateICSLinkButton = false;
+        const data = {
+            'timezone': ev.detail.timezone,
+        }
+
+        fetch(`${api}/ics/update_timezone`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                timezone = data["timezone"];
+                generateICSLinkButton = true;
+            })
+    }
+
 
     addEventListener("DOMContentLoaded", () => {
         document.getElementById("createClass").addEventListener("submit", createClass);
@@ -981,8 +1010,11 @@ button[type="submit"] {
         <p>Subscribe to your assignments in your calendar app!</p>
         <p>{ics_link}</p>
     {:else}
-        <p>No assignments found.</p>
+        <p>No link generated yet.</p>
     {/if}
+
+    <TimezonePicker {timezone} on:update="{updateTimezone}" />
+
     <button id="generateICSLinkButton" type="button" disabled={!generateICSLinkButton} on:click={generateICSLink}>
         {#if ics_link == ""}
             Generate Link
