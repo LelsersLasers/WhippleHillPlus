@@ -22,7 +22,7 @@ func userFromUsername(username string) (User, error) {
 	defer rows.Close()
 
 	if rows.Next() {
-		rows.Scan(&user.ID, &user.Username, &user.Name, &user.PasswordHash, &user.ICSLink)
+		rows.Scan(&user.ID, &user.Username, &user.Name, &user.PasswordHash, &user.ICSLink, &user.Timezone)
 		return user, nil
 	}
 
