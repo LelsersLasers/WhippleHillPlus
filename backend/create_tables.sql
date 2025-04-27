@@ -6,6 +6,7 @@ pragma foreign_keys = ON;
 -- 	- name (text)
 -- 	- password_hash (text)
 -- 	- ics_link (text, unique)
+-- 	- timezone (text)
 -- - sessions
 -- 	- id (int, pk)
 -- 	- token (text)
@@ -36,7 +37,8 @@ CREATE TABLE IF NOT EXISTS users (
 	username      TEXT    NOT NULL UNIQUE,
 	name          TEXT    NOT NULL,
 	password_hash TEXT    NOT NULL,
-	ics_link	  TEXT    UNIQUE -- UUID for the ICS link
+	ics_link	  TEXT    UNIQUE, 
+	timezone 	  TEXT
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
