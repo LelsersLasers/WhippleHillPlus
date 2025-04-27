@@ -37,9 +37,43 @@ func homeData(w http.ResponseWriter, r *http.Request) {
 	if user.ICSLink != "" {
 		data["ics_link"] = user.ICSLink
 	}
+	if user.Timezone != "" {
+		data["timezone"] = user.Timezone
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
+}
+
+func icsUpdateTimezoneHandler(w http.ResponseWriter, r *http.Request) {
+	loggedIn, username := isLoggedIn(r)
+	if !loggedIn {
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+	var data struct {
+		Timezone string `json:"timezone"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
+	_, err = db.Exec("UPDATE users SET timezone = ? WHERE username = ?", data.Timezone, username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to update timezone", http.StatusInternalServerError)
+		return
+	}
+	var response struct {
+		Timezone string `json:"timezone"`
+	}
+	response.Timezone = data.Timezone
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func generateICSHandler(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +114,7 @@ func icsHandler(w http.ResponseWriter, r *http.Request) {
 	uuidParts := strings.Split(pathParts[2], ".")
 	uuid := uuidParts[0]
 
-	userID, err := getUserIDFromUUID(uuid)
+	userID, timezone, err := getUserDataFromUUID(uuid)
 	if err != nil {
 		errStr := fmt.Sprintf("Invalid UUID: %s (%s)", uuid, err.Error())
 		http.Error(w, errStr, http.StatusUnauthorized)
@@ -89,7 +123,7 @@ func icsHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, classes, assignments := allSemestersClassesAndAssignments(userID)
 
-	icsData := generateICS(classes, assignments)
+	icsData := generateICS(classes, assignments, timezone)
 
 	w.Header().Set("Content-Type", "text/calendar")
 	w.Header().Set("Content-Disposition", "attachment; filename=assignments.ics")

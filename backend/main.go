@@ -48,6 +48,7 @@ func main() {
 
 	handler.HandleFunc("/home_data", homeData)
 
+	handler.HandleFunc("/ics/update_timezone", icsUpdateTimezoneHandler)
 	handler.HandleFunc("/ics/generate", generateICSHandler)
 	handler.HandleFunc("/ics/", icsHandler)
 

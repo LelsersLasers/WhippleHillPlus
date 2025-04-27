@@ -252,29 +252,33 @@ func allSemestersClassesAndAssignments(user_id int) ([]Semester, []Class, []Assi
 	return semesters, classes, assignments
 }
 
-func getUserIDFromUUID(uuid string) (int, error) {
+func getUserDataFromUUID(uuid string) (int, string, error) {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
-	rows, err := db.Query("SELECT id FROM users WHERE ics_link = ?", uuid)
+	rows, err := db.Query("SELECT id, timezone FROM users WHERE ics_link = ?", uuid)
 	if err != nil {
-		return -1, err
+		return -1, "", err
 	}
 	defer rows.Close()
 
 	if rows.Next() {
-		var userID int
-		rows.Scan(&userID)
-		return userID, nil
+		var data struct {
+			UserID   int
+			Timezone string
+		}
+		rows.Scan(&data.UserID, &data.Timezone)
+		return data.UserID, data.Timezone, nil
 	}
 
-	return -1, fmt.Errorf("User not found")
+	return -1, "", fmt.Errorf("User not found")
 }
 
-func generateICS(classes []Class, assignments []Assignment) string {
+func generateICS(classes []Class, assignments []Assignment, timezone string) string {
 	cal := ics.NewCalendar()
 	cal.SetMethod(ics.MethodPublish)
 	cal.SetName("WH+ Assignments")
+	cal.SetTimezoneId(timezone)
 
 	for _, a := range assignments {
 		dueTime := a.DueTime
