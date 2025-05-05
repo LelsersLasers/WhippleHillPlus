@@ -1,0 +1,2 @@
+ALTER TABLE users
+ADD COLUMN ics_link TEXT UNIQUE;

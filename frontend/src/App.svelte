@@ -1,4 +1,5 @@
 <script>
+    import TimezonePicker from 'svelte-timezone-picker';
     import Modal from "./Modal.svelte";
     import { fly } from "svelte/transition"; 
 
@@ -11,6 +12,7 @@
     let classes = [];
     let semesters = [];
     let user_name = "Loading...";
+    let ics_link = "";
 
     let semester = -1;
     let semesterValue = -1;
@@ -20,6 +22,8 @@
     let classFilter = [];
 
     let unique = {};
+
+    let timezone = "";
 
     processMainData(data);
 
@@ -41,6 +45,16 @@
                 classes = data["classes"];
                 semesters = data["semesters"];
                 user_name = data["user_name"];
+                if (data["ics_link"]) {
+                    // ics_link = `${api}/ics/${data["ics_link"]}.ics`;
+                    ics_link = data["ics_link"];
+                }
+                if (data["timezone"]) {
+                    timezone = data["timezone"];
+                } else {
+                    timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    updateTimezone({ detail: { timezone: timezone } });
+                }
 
                 if (semester == -1) {
                     semesters = semesters.sort((a, b) => b.sort_order - a.sort_order);
@@ -191,6 +205,8 @@
         return date;
     }
 
+    let showICSModal = false;
+    let generateICSLinkButton = true;
     
     let showCreateSemesterModal = false;
     let createSemesterModalButton = true;
@@ -727,6 +743,43 @@
     }
 
 
+    function generateICSLink() {
+        generateICSLinkButton = false;
+
+        fetch(`${api}/ics/generate`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                // ics_link = `${api}/ics/${data["ics_link"]}.ics`;
+                ics_link = data["ics_link"];
+                generateICSLinkButton = true;
+            })
+    }
+
+    function updateTimezone(ev) {
+        generateICSLinkButton = false;
+        const data = {
+            'timezone': ev.detail.timezone,
+        }
+
+        fetch(`${api}/ics/update_timezone`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                timezone = data["timezone"];
+                generateICSLinkButton = true;
+            })
+    }
+
 
     addEventListener("DOMContentLoaded", () => {
         document.getElementById("createClass").addEventListener("submit", createClass);
@@ -848,6 +901,20 @@ button[type="submit"] {
     }
 }
 
+
+.calenderLabel {
+    text-align: center;
+    margin-bottom: 4px;
+}
+code {
+    background-color: #d4d4d4;
+    padding: 0.5em;
+    border-radius: 5px;
+    width: 100%;
+    text-align: center;
+    display: block;
+}
+
 </style>
 
 
@@ -868,6 +935,7 @@ button[type="submit"] {
     <button type="button" on:click={() => page = "assignments"}>View Assignments</button>
     <button type="button" on:click={() => { showCreateClassModal = true; document.getElementById("createClassModalSemesterID").value = semester; }}>Create Class</button>
     <button type="button" on:click={() => showAllSemestersModal = true}>Semesters</button>
+    <button type="button" on:click={() => showICSModal = true}>Calendar Integration</button>
 
     <table>
         <tr>
@@ -951,6 +1019,40 @@ button[type="submit"] {
 {/if}
 
 </div>
+
+<Modal bind:showModal={showICSModal}>
+    <h2>Calender Integration (ICS)</h2>
+
+    <TimezonePicker {timezone} on:update="{updateTimezone}" />
+    
+    {#if ics_link != ""}
+        <p>Subscribe to your assignments in your calendar app!</p>
+
+        <p class="calenderLabel">All Assignments:</p>
+        <code class="breakWord">{`${api}/ics/0/${ics_link}.ics`}</code>
+
+        <p class="calenderLabel">Not Started:</p>
+        <code class="breakWord">{`${api}/ics/1/${ics_link}.ics`}</code>
+
+        <p class="calenderLabel">In Progress:</p>
+        <code class="breakWord">{`${api}/ics/2/${ics_link}.ics`}</code>
+
+        <p class="calenderLabel">Completed:</p>
+        <code class="breakWord">{`${api}/ics/3/${ics_link}.ics`}</code>
+
+        <br />
+    {:else}
+        <p>No link generated yet.</p>
+    {/if}
+
+    <button id="generateICSLinkButton" type="button" disabled={!generateICSLinkButton} on:click={generateICSLink}>
+        {#if ics_link == ""}
+            Generate Link
+        {:else}
+            Regenerate Link
+        {/if}
+    </button>
+</Modal>
 
 
 <Modal bind:showModal={showCreateSemesterModal}>

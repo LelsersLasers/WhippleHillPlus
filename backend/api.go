@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,9 +34,121 @@ func homeData(w http.ResponseWriter, r *http.Request) {
 		"classes":     classes,
 		"assignments": assignments,
 	}
+	if user.ICSLink != "" {
+		data["ics_link"] = user.ICSLink
+	}
+	if user.Timezone != "" {
+		data["timezone"] = user.Timezone
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
+}
+
+func icsUpdateTimezoneHandler(w http.ResponseWriter, r *http.Request) {
+	loggedIn, username := isLoggedIn(r)
+	if !loggedIn {
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+	var data struct {
+		Timezone string `json:"timezone"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Error parsing JSON", http.StatusBadRequest)
+		return
+	}
+	_, err = db.Exec("UPDATE users SET timezone = ? WHERE username = ?", data.Timezone, username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to update timezone", http.StatusInternalServerError)
+		return
+	}
+	var response struct {
+		Timezone string `json:"timezone"`
+	}
+	response.Timezone = data.Timezone
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func generateICSHandler(w http.ResponseWriter, r *http.Request) {
+	loggedIn, username := isLoggedIn(r)
+	if !loggedIn {
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+
+	icsLink := uuid.New().String()
+	_, err := db.Exec("UPDATE users SET ics_link = ? WHERE username = ?", icsLink, username)
+	if err != nil {
+		http.Error(w, "Internal server error - failed to update ICS link", http.StatusInternalServerError)
+		return
+	}
+
+	var data struct {
+		ICSLink string `json:"ics_link"`
+	}
+	data.ICSLink = icsLink
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
+
+func icsHandler(w http.ResponseWriter, r *http.Request) {
+	// Path: /ics/<option>/<uuid>.ics
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) != 4 || pathParts[3] == "" {
+		errStr := fmt.Sprintf("Invalid ICS URL: %s", r.URL.Path)
+		http.Error(w, errStr, http.StatusBadRequest)
+		return
+	}
+
+	uuidParts := strings.Split(pathParts[3], ".")
+	uuid := uuidParts[0]
+
+	userID, timezone, err := getUserDataFromUUID(uuid)
+	if err != nil {
+		errStr := fmt.Sprintf("Invalid UUID: %s (%s)", uuid, err.Error())
+		http.Error(w, errStr, http.StatusUnauthorized)
+		return
+	}
+
+	// OPTIONS: 0 = all, 1 = not started, 2 = in progress, 3 = completed
+	option := pathParts[2]
+	if option != "0" && option != "1" && option != "2" && option != "3" {
+		errStr := fmt.Sprintf("Invalid option: %s (%s)", option, r.URL.Path)
+		http.Error(w, errStr, http.StatusBadRequest)
+		return
+	}
+	options := map[string]string{"1": "Not Started", "2": "In Progress", "3": "Completed"}
+	names := map[string]string{
+		"0": "WH+ Assignments (All)",
+		"1": "WH+: Not Started",
+		"2": "WH+: In Progress",
+		"3": "WH+: Completed",
+	}
+
+	_, classes, all_assignments := allSemestersClassesAndAssignments(userID)
+	assignments := []Assignment{}
+	for _, assignment := range all_assignments {
+		if option == "0" || assignment.Status == options[option] {
+			assignments = append(assignments, assignment)
+		}
+	}
+
+	icsData := generateICS(classes, assignments, timezone, names[option])
+
+	w.Header().Set("Content-Type", "text/calendar")
+	w.Header().Set("Content-Disposition", "attachment; filename=assignments.ics")
+	fmt.Fprint(w, icsData)
 }
 
 func loginUser(w http.ResponseWriter, r *http.Request) {

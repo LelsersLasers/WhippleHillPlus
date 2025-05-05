@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/arran4/golang-ical"
 	"github.com/google/uuid"
 )
 
@@ -20,7 +22,7 @@ func userFromUsername(username string) (User, error) {
 	defer rows.Close()
 
 	if rows.Next() {
-		rows.Scan(&user.ID, &user.Username, &user.Name, &user.PasswordHash)
+		rows.Scan(&user.ID, &user.Username, &user.Name, &user.PasswordHash, &user.ICSLink, &user.Timezone)
 		return user, nil
 	}
 
@@ -248,4 +250,75 @@ func allSemestersClassesAndAssignments(user_id int) ([]Semester, []Class, []Assi
 	}
 
 	return semesters, classes, assignments
+}
+
+func getUserDataFromUUID(uuid string) (int, string, error) {
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+
+	rows, err := db.Query("SELECT id, timezone FROM users WHERE ics_link = ?", uuid)
+	if err != nil {
+		return -1, "", err
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		var data struct {
+			UserID   int
+			Timezone string
+		}
+		rows.Scan(&data.UserID, &data.Timezone)
+		return data.UserID, data.Timezone, nil
+	}
+
+	return -1, "", fmt.Errorf("User not found")
+}
+
+func generateICS(classes []Class, assignments []Assignment, timezone string, name string) string {
+	cal := ics.NewCalendar()
+	cal.SetMethod(ics.MethodPublish)
+	cal.SetName(name)
+	cal.SetTimezoneId(timezone)
+	cal.SetXWRTimezone(timezone)
+
+	for _, a := range assignments {
+		dueTime := a.DueTime
+		if dueTime == "" {
+			dueTime = ICSDefaultDueTime
+		}
+
+		dateOnly := strings.Split(a.DueDate, "T")[0]
+		startTime, err := time.Parse("2006-01-02 15:04", dateOnly + " " + dueTime)
+		if err != nil {
+			fmt.Println("Error parsing due date and time: ", err)
+			continue
+		}
+
+		endTime := startTime.Add(10 * time.Minute)
+
+		class := Class{}
+		for _, c := range classes {
+			if c.ID == a.ClassID {
+				class = c
+				break
+			}
+		}
+
+		event := ics.NewEvent(fmt.Sprintf("assignment-%d", a.ID))
+		event.SetSummary(fmt.Sprintf("%s: %s", class.Name, a.Name))
+		event.SetLocation(class.Name)
+		if a.Description != "" {
+			event.SetDescription(a.Description)
+		}
+
+		event.SetProperty(ics.ComponentPropertyDtStart, startTime.Format("20060102T150405"))
+		event.SetProperty(ics.ComponentPropertyDtEnd, endTime.Format("20060102T150405"))
+
+		event.SetCreatedTime(time.Now())
+		event.SetURL("https://lelserslasers.alwaysdata.net/")
+
+		cal.AddVEvent(event)
+	}
+
+	return cal.Serialize()
 }

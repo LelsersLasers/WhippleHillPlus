@@ -5,6 +5,8 @@ type User struct {
 	Username     string `json:"username"`
 	Name         string `json:"name"`
 	PasswordHash string `json:"password_hash"`
+	ICSLink      string `json:"ics_link"`
+	Timezone     string `json:"timezone"`
 }
 
 type Session struct {

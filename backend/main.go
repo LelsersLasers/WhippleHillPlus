@@ -18,6 +18,8 @@ const SessionTokenCookieName = "WhippleHillPlus-token"
 const SessionUsernameCookieName = "WhippleHillPlus-username"
 const SessionTimeout = 2 * 7 * 24 * time.Hour // 2 weeks
 
+const ICSDefaultDueTime = "22:00"
+
 const ContextFailCookieNameBase = "context_fail_"
 const ContextFailCookieTimeout = 5 * time.Second
 
@@ -45,6 +47,10 @@ func main() {
 	handler.Handle("/", checkLogin(fileServer))
 
 	handler.HandleFunc("/home_data", homeData)
+
+	handler.HandleFunc("/ics/update_timezone", icsUpdateTimezoneHandler)
+	handler.HandleFunc("/ics/generate", generateICSHandler)
+	handler.HandleFunc("/ics/", icsHandler)
 
 	handler.HandleFunc("/login", loginPage)
 	handler.HandleFunc("/register", registerPage)
