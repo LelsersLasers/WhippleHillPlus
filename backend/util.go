@@ -304,15 +304,11 @@ func generateICS(classes []Class, assignments []Assignment, timezone string) str
 			}
 		}
 
-		classStr := fmt.Sprintf("%s: ", class.Name)
-
 		event := ics.NewEvent(fmt.Sprintf("assignment-%d", a.ID))
-		event.SetSummary(fmt.Sprintf("%s%s", classStr, a.Name))
+		event.SetSummary(fmt.Sprintf("%s: %s", class.Name, a.Name))
 		if a.Description != "" {
 			event.SetDescription(a.Description)
 		}
-		// event.SetStartAt(startTime)
-		// event.SetEndAt(endTime)
 
 		event.SetProperty(ics.ComponentPropertyDtStart, startTime.Format("20060102T150405"))
 		event.SetProperty(ics.ComponentPropertyDtEnd, endTime.Format("20060102T150405"))
