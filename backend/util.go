@@ -306,6 +306,7 @@ func generateICS(classes []Class, assignments []Assignment, timezone string) str
 
 		event := ics.NewEvent(fmt.Sprintf("assignment-%d", a.ID))
 		event.SetSummary(fmt.Sprintf("%s: %s", class.Name, a.Name))
+		event.SetLocation(class.Name)
 		if a.Description != "" {
 			event.SetDescription(a.Description)
 		}
