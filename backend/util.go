@@ -274,10 +274,10 @@ func getUserDataFromUUID(uuid string) (int, string, error) {
 	return -1, "", fmt.Errorf("User not found")
 }
 
-func generateICS(classes []Class, assignments []Assignment, timezone string) string {
+func generateICS(classes []Class, assignments []Assignment, timezone string, name string) string {
 	cal := ics.NewCalendar()
 	cal.SetMethod(ics.MethodPublish)
-	cal.SetName("WH+ Assignments")
+	cal.SetName(name)
 	cal.SetTimezoneId(timezone)
 	cal.SetXWRTimezone(timezone)
 

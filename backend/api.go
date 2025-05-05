@@ -129,6 +129,12 @@ func icsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	options := map[string]string{"1": "Not Started", "2": "In Progress", "3": "Completed"}
+	names := map[string]string{
+		"0": "WH+ Assignments (All)",
+		"1": "WH+: Not Started",
+		"2": "WH+: In Progress",
+		"3": "WH+: Completed",
+	}
 
 	_, classes, all_assignments := allSemestersClassesAndAssignments(userID)
 	assignments := []Assignment{}
@@ -138,7 +144,7 @@ func icsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	icsData := generateICS(classes, assignments, timezone)
+	icsData := generateICS(classes, assignments, timezone, names[option])
 
 	w.Header().Set("Content-Type", "text/calendar")
 	w.Header().Set("Content-Disposition", "attachment; filename=assignments.ics")
