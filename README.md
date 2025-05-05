@@ -6,9 +6,8 @@ An online homework and assignment management tool
 
 ## Features
 
-- Create and manage semesters
-- Create and manage classes
-- Create and manage assignments
+- Seamless Google/Apple Calendar integration
+- Create and manage semesters, classes, and assignments
 - Sort and filter assigments by status, due date, class, etc.
 - Mark assignments as not started, in progress, or completed
 - Clean and simple UI
