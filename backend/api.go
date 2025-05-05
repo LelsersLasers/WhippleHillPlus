@@ -103,15 +103,15 @@ func generateICSHandler(w http.ResponseWriter, r *http.Request) {
 
 
 func icsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract UUID from path, e.g. /ics/abc-123 -> "abc-123"
+	// Path: /ics/<option>/<uuid>.ics
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) != 3 || pathParts[2] == "" {
+	if len(pathParts) != 4 || pathParts[3] == "" {
 		errStr := fmt.Sprintf("Invalid ICS URL: %s", r.URL.Path)
 		http.Error(w, errStr, http.StatusBadRequest)
 		return
 	}
 
-	uuidParts := strings.Split(pathParts[2], ".")
+	uuidParts := strings.Split(pathParts[3], ".")
 	uuid := uuidParts[0]
 
 	userID, timezone, err := getUserDataFromUUID(uuid)
@@ -121,7 +121,22 @@ func icsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, classes, assignments := allSemestersClassesAndAssignments(userID)
+	// OPTIONS: 0 = all, 1 = not started, 2 = in progress, 3 = completed
+	option := pathParts[2]
+	if option != "0" && option != "1" && option != "2" && option != "3" {
+		errStr := fmt.Sprintf("Invalid option: %s (%s)", option, r.URL.Path)
+		http.Error(w, errStr, http.StatusBadRequest)
+		return
+	}
+	options := map[string]string{"1": "Not Started", "2": "In Progress", "3": "Completed"}
+
+	_, classes, all_assignments := allSemestersClassesAndAssignments(userID)
+	assignments := []Assignment{}
+	for _, assignment := range all_assignments {
+		if option == "0" || assignment.Status == options[option] {
+			assignments = append(assignments, assignment)
+		}
+	}
 
 	icsData := generateICS(classes, assignments, timezone)
 

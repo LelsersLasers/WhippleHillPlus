@@ -46,7 +46,8 @@
                 semesters = data["semesters"];
                 user_name = data["user_name"];
                 if (data["ics_link"]) {
-                    ics_link = `${api}/ics/${data["ics_link"]}.ics`;
+                    // ics_link = `${api}/ics/${data["ics_link"]}.ics`;
+                    ics_link = data["ics_link"];
                 }
                 if (data["timezone"]) {
                     timezone = data["timezone"];
@@ -753,7 +754,8 @@
         })
             .then((res) => res.json())
             .then((data) => {
-                ics_link = `${api}/ics/${data["ics_link"]}.ics`;
+                // ics_link = `${api}/ics/${data["ics_link"]}.ics`;
+                ics_link = data["ics_link"];
                 generateICSLinkButton = true;
             })
     }
@@ -899,6 +901,20 @@ button[type="submit"] {
     }
 }
 
+
+.calenderLabel {
+    text-align: center;
+    margin-bottom: 4px;
+}
+code {
+    background-color: #d4d4d4;
+    padding: 0.5em;
+    border-radius: 5px;
+    width: 100%;
+    text-align: center;
+    display: block;
+}
+
 </style>
 
 
@@ -1006,14 +1022,28 @@ button[type="submit"] {
 
 <Modal bind:showModal={showICSModal}>
     <h2>Calender Integration (ICS)</h2>
+
+    <TimezonePicker {timezone} on:update="{updateTimezone}" />
+    
     {#if ics_link != ""}
         <p>Subscribe to your assignments in your calendar app!</p>
-        <p>{ics_link}</p>
+
+        <p class="calenderLabel">All Assignments:</p>
+        <code class="breakWord">{`${api}/ics/0/${ics_link}.ics`}</code>
+
+        <p class="calenderLabel">Not Started:</p>
+        <code class="breakWord">{`${api}/ics/1/${ics_link}.ics`}</code>
+
+        <p class="calenderLabel">In Progress:</p>
+        <code class="breakWord">{`${api}/ics/2/${ics_link}.ics`}</code>
+
+        <p class="calenderLabel">Completed:</p>
+        <code class="breakWord">{`${api}/ics/3/${ics_link}.ics`}</code>
+
+        <br />
     {:else}
         <p>No link generated yet.</p>
     {/if}
-
-    <TimezonePicker {timezone} on:update="{updateTimezone}" />
 
     <button id="generateICSLinkButton" type="button" disabled={!generateICSLinkButton} on:click={generateICSLink}>
         {#if ics_link == ""}
