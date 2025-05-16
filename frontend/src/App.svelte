@@ -744,6 +744,12 @@
 
 
     function generateICSLink() {
+        if (ics_link != "") {
+            if (!window.confirm("Are you sure you want to generate a new ICS link? This will invalidate the old ones. You do not need to regenerate the link if you just want to update the timezone.")) {
+                return;
+            }
+        }
+
         generateICSLinkButton = false;
 
         fetch(`${api}/ics/generate`, {
