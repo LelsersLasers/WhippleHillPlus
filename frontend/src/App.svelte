@@ -993,10 +993,10 @@ code {
 .mobile-status {
     font-size: 1em;
     word-break: normal;
-    min-width: 10%;
     margin-left: 0.5em;
     text-align: right;
     margin-right: 0.25em;
+    flex: 0 0 auto;
 }
 
 </style>
