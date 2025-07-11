@@ -1052,43 +1052,46 @@ code {
 
     {#if isSmallScreen}
         {#each shownAssignments as a, i (a.id)}
-            <div
-                class="mobile-row"
-                style="{shownAssignments[i + 1] && a.due_date != shownAssignments[i + 1].due_date ? 'border-bottom: 1px solid black;' : ''}"
-            >
-                <div class="mobile-primary">
-                    <p class="mobile-title">
-                        <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <!-- svelte-ignore a11y-missing-attribute -->
-                        <a on:click={() => assignmentDetailsButton(a.id)}>{a.name}</a>
-                        <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <!-- svelte-ignore a11y-missing-attribute -->
-                        <a class="mobile-link" on:click={() => updateAssignmentButton(a.id)}>
-                            <span class="mobile-edit">(edit)</span>
-                        </a>
-                    </p>
-                    <div class="mobile-details">
-                        <div>
-                            {a.type}: {classFromId(a.class_id).name}
+            {#key unique[a.id]}
+                <div
+                    in:fly|global={{ duration: 300, x: -200 }}
+                    class="mobile-row"
+                    style="{shownAssignments[i + 1] && a.due_date != shownAssignments[i + 1].due_date ? 'border-bottom: 1px solid black;' : ''}"
+                >
+                    <div class="mobile-primary">
+                        <p class="mobile-title">
+                            <!-- svelte-ignore a11y-click-events-have-key-events -->
+                            <!-- svelte-ignore a11y-missing-attribute -->
+                            <a on:click={() => assignmentDetailsButton(a.id)}>{a.name}</a>
+                            <!-- svelte-ignore a11y-click-events-have-key-events -->
+                            <!-- svelte-ignore a11y-missing-attribute -->
+                            <a class="mobile-link" on:click={() => updateAssignmentButton(a.id)}>
+                                <span class="mobile-edit">(edit)</span>
+                            </a>
+                        </p>
+                        <div class="mobile-details">
+                            <div>
+                                {a.type}: {classFromId(a.class_id).name}
+                            </div>
+                        </div>
+                        <div class="mobile-details">
+                            {#if a.due_time != ""}
+                                Due: <span class="mobile-due">{formatDateString(a.due_date)}</span> ({dateToDayOfWeek(a.due_date)}) at {convertTimeTo12Hours(a.due_time)}
+                            {:else}
+                                Due: <span class="mobile-due">{formatDateString(a.due_date)}</span> ({dateToDayOfWeek(a.due_date)})
+                            {/if}
                         </div>
                     </div>
-                    <div class="mobile-details">
-                        {#if a.due_time != ""}
-                            Due: <span class="mobile-due">{formatDateString(a.due_date)}</span> ({dateToDayOfWeek(a.due_date)}) at {convertTimeTo12Hours(a.due_time)}
-                        {:else}
-                            Due: <span class="mobile-due">{formatDateString(a.due_date)}</span> ({dateToDayOfWeek(a.due_date)})
-                        {/if}
+
+                    <div class="mobile-status">
+                        <select value={a.status} on:input={(e) => statusAssignment(e, a.id)} style="background-color: {assignmentToColor(a)}">
+                                <option value="Not Started">Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                        </select>
                     </div>
                 </div>
-
-                <div class="mobile-status">
-                    <select value={a.status} on:input={(e) => statusAssignment(e, a.id)} style="background-color: {assignmentToColor(a)}">
-                            <option value="Not Started">Not Started</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                    </select>
-                </div>
-            </div>
+            {/key}
         {/each}
     {:else}
         <table>
