@@ -2,9 +2,12 @@
     import TimezonePicker from 'svelte-timezone-picker';
     import Modal from "./Modal.svelte";
     import { fly } from "svelte/transition"; 
+    import { onDestroy } from "svelte";
 
     export let data;
     export let api;
+
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     let page = "assignments";
 
@@ -24,6 +27,19 @@
     let unique = {};
 
     let timezone = "";
+
+    let isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
+
+    const mediaQuery = window.matchMedia("(max-width: 500px)");
+	const update = () => {
+		isSmallScreen = mediaQuery.matches;
+	};
+
+	mediaQuery.addEventListener("change", update);
+
+	onDestroy(() => {
+		mediaQuery.removeEventListener("change", update);
+	});
 
     processMainData(data);
 
@@ -786,6 +802,11 @@
             })
     }
 
+    function dateToDayOfWeek(date) {
+        const dayIndex = new Date(date).getDay();
+        return days[dayIndex];
+    }
+
 
     addEventListener("DOMContentLoaded", () => {
         document.getElementById("createClass").addEventListener("submit", createClass);
@@ -921,6 +942,63 @@ code {
     display: block;
 }
 
+.mobile-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5em 0;
+    word-break: break-word;
+    /* border-bottom: 1px solid #9893a5; */
+}
+
+.mobile-primary {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 0.25em;
+}
+
+.mobile-title {
+    font-size: 1em;
+    margin: 0;
+}
+
+.mobile-link {
+    margin-left: 0.5em;
+    text-decoration: none;
+}
+
+.mobile-edit {
+    font-size: 0.7em;
+    color: #666;
+    cursor: pointer;
+}
+
+.mobile-details {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
+    font-size: 0.75em;
+    color: #666;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.mobile-due {
+    color: #000;
+}
+
+.mobile-status {
+    font-size: 1em;
+    word-break: normal;
+    min-width: 10%;
+    margin-left: 0.5em;
+    text-align: right;
+    margin-right: 0.25em;
+}
+
 </style>
 
 
@@ -972,52 +1050,94 @@ code {
     <button type="button" on:click={() => showStatusFilter = true}>Status Filter</button>
     <button type="button" on:click={() => showTypeFilter = true}>Type Filter</button>
 
-    <table>
-        <tr>
-            <th class="classWidth">Class</th>
-            <th class="zeroWidth untightPadding">Type</th>
-            <th>Name</th>
-            <th class="zeroWidth untightPadding">Assigned</th>
-            <th class="zeroWidth">Due</th>
-            <th class="zeroWidth"></th>
-            <th class="zeroWidth"></th>
-        </tr>
+    {#if isSmallScreen}
         {#each shownAssignments as a, i (a.id)}
-            {#key unique[a.id]}
-                <tr
-                    in:fly|global={{ duration: 300, x: -200 }}
-                    style="{shownAssignments[i + 1] && a.due_date != shownAssignments[i + 1].due_date ? 'border-bottom: 1px solid black;' : ''}"
-                >
-                    <td class="breakWord padding">{classFromId(a.class_id).name}</td>
-                    <td class="untightPadding">{a.type}</td>
-                    <td>
+            <div
+                class="mobile-row"
+                style="{shownAssignments[i + 1] && a.due_date != shownAssignments[i + 1].due_date ? 'border-bottom: 1px solid black;' : ''}"
+            >
+                <div class="mobile-primary">
+                    <p class="mobile-title">
                         <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <!-- svelte-ignore a11y-no-static-element-interactions -->
                         <!-- svelte-ignore a11y-missing-attribute -->
-                        <a class="breakWord pointer" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</a>
-                    </td>
-                    <td class="untightPadding">{formatDateString(a.assigned_date)}</td>
-                    {#if a.due_time != ""}
-                        <td class="untightPadding">{formatDateString(a.due_date)} <br /> {convertTimeTo12Hours(a.due_time)}</td>
-                    {:else}
-                        <td class="untightPadding">{formatDateString(a.due_date)}</td>
-                    {/if}
+                        <a on:click={() => assignmentDetailsButton(a.id)}>{a.name}</a>
+                        <!-- svelte-ignore a11y-click-events-have-key-events -->
+                        <!-- svelte-ignore a11y-missing-attribute -->
+                        <a class="mobile-link" on:click={() => updateAssignmentButton(a.id)}>
+                            <span class="mobile-edit">(edit)</span>
+                        </a>
+                    </p>
+                    <div class="mobile-details">
+                        <div>
+                            {a.type}: {classFromId(a.class_id).name}
+                        </div>
+                    </div>
+                    <div class="mobile-details">
+                        {#if a.due_time != ""}
+                            Due: <span class="mobile-due">{formatDateString(a.due_date)}</span> ({dateToDayOfWeek(a.due_date)}) at {convertTimeTo12Hours(a.due_time)}
+                        {:else}
+                            Due: <span class="mobile-due">{formatDateString(a.due_date)}</span> ({dateToDayOfWeek(a.due_date)})
+                        {/if}
+                    </div>
+                </div>
 
-                    <td class="zeroWidth untightPadding">
-                        <select value={a.status} on:input={(e) => statusAssignment(e, a.id)} style="background-color: {assignmentToColor(a)}">
+                <div class="mobile-status">
+                    <select value={a.status} on:input={(e) => statusAssignment(e, a.id)} style="background-color: {assignmentToColor(a)}">
                             <option value="Not Started">Not Started</option>
                             <option value="In Progress">In Progress</option>
                             <option value="Completed">Completed</option>
-                        </select>
-                    </td>
-
-                    <td class="zeroWidth">
-                        <button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
-                    </td>
-                </tr>
-            {/key}
+                    </select>
+                </div>
+            </div>
         {/each}
-    </table>
+    {:else}
+        <table>
+            <tr>
+                <th class="classWidth">Class</th>
+                <th class="zeroWidth untightPadding">Type</th>
+                <th>Name</th>
+                <th class="zeroWidth untightPadding">Assigned</th>
+                <th class="zeroWidth">Due</th>
+                <th class="zeroWidth"></th>
+                <th class="zeroWidth"></th>
+            </tr>
+            {#each shownAssignments as a, i (a.id)}
+                {#key unique[a.id]}
+                    <tr
+                        in:fly|global={{ duration: 300, x: -200 }}
+                        style="{shownAssignments[i + 1] && a.due_date != shownAssignments[i + 1].due_date ? 'border-bottom: 1px solid black;' : ''}"
+                    >
+                        <td class="breakWord padding">{classFromId(a.class_id).name}</td>
+                        <td class="untightPadding">{a.type}</td>
+                        <td>
+                            <!-- svelte-ignore a11y-click-events-have-key-events -->
+                            <!-- svelte-ignore a11y-no-static-element-interactions -->
+                            <!-- svelte-ignore a11y-missing-attribute -->
+                            <a class="breakWord pointer" on:click={() => assignmentDetailsButton(a.id)}>{a.name}</a>
+                        </td>
+                        <td class="untightPadding">{formatDateString(a.assigned_date)}</td>
+                        {#if a.due_time != ""}
+                            <td class="untightPadding">{formatDateString(a.due_date)} <br /> {dateToDayOfWeek(a.due_date)} <br /> {convertTimeTo12Hours(a.due_time)}</td>
+                        {:else}
+                            <td class="untightPadding">{formatDateString(a.due_date)} <br /> {dateToDayOfWeek(a.due_date)}</td>
+                        {/if}
+
+                        <td class="zeroWidth untightPadding">
+                            <select value={a.status} on:input={(e) => statusAssignment(e, a.id)} style="background-color: {assignmentToColor(a)}">
+                                <option value="Not Started">Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </td>
+
+                        <td class="zeroWidth">
+                            <button type="button" on:click={() => updateAssignmentButton(a.id)}>Edit</button>
+                        </td>
+                    </tr>
+                {/key}
+            {/each}
+        </table>
+    {/if}
 
     <br />
     <br />
