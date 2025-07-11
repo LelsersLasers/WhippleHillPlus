@@ -30,7 +30,7 @@
 
     let isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
 
-    const mediaQuery = window.matchMedia("(max-width: 500px)");
+    const mediaQuery = window.matchMedia("(max-width: 600px)");
 	const update = () => {
 		isSmallScreen = mediaQuery.matches;
 	};
